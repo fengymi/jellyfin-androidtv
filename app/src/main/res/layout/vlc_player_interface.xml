@@ -31,6 +31,20 @@
             android:layout_height="match_parent"
             app:use_controller="false" />
 
+        <com.tv.fengymi.danmu.view.DanmuSurfaceView
+            android:id="@+id/danmuView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:use_controller="false" />
+<!--        <com.tv.fengymi.danmu.view.DanmuConfigView-->
+<!--            android:id="@+id/danmuConfigView"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:maxHeight="90dp"-->
+<!--            android:maxWidth="160dp"-->
+<!--            android:layout_gravity="center"-->
+<!--            app:use_controller="false" />-->
+
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/leanback_fragment"
             android:name="org.jellyfin.androidtv.ui.playback.overlay.LeanbackOverlayFragment"
@@ -52,6 +66,7 @@
             app:strokeWidth="5.0"
             tools:text="Subtitles" />
 
+        <include android:layout_gravity="center|right" android:id="@+id/stats" android:visibility="gone" android:layout_width="wrap_content" android:layout_height="wrap_content" layout="@layout/stats_for_nerds" />
     </FrameLayout>
 
     <FrameLayout

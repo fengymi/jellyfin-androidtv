@@ -1,0 +1,40 @@
+plugins
+{
+    alias(libs.plugins.android.library)
+}
+
+android {
+    namespace 'com.tv.fengymi.danmu'
+    compileSdk libs.versions.android.compileSdk.get().toInteger()
+
+    defaultConfig {
+        minSdk libs.versions.android.minSdk.get().toInteger()
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+
+    implementation libs.androidx.core
+    // 二方包不能使用
+//    implementation libs.material
+
+    // Logging
+    implementation(libs.timber)
+
+    testImplementation libs.junit
+    androidTestImplementation libs.androidx.junit
+    androidTestImplementation libs.androidx.espresso.core
+}

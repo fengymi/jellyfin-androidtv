@@ -14,12 +14,17 @@ import androidx.fragment.app.commit
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import com.tv.fengymi.danmu.model.DanmuApiOption
+import com.tv.fengymi.danmu.utils.DanmuUtils
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.auth.repository.SessionRepository
 import org.jellyfin.androidtv.auth.repository.UserRepository
+import org.jellyfin.androidtv.danmu.api.DanmuApi
+import org.jellyfin.androidtv.danmu.utils.SharedPreferencesDanmuConfig
+import org.jellyfin.androidtv.danmu.utils.SimpleDanmuUtil
 import org.jellyfin.androidtv.databinding.ActivityMainBinding
 import org.jellyfin.androidtv.ui.ScreensaverViewModel
 import org.jellyfin.androidtv.ui.background.AppBackground
@@ -32,6 +37,7 @@ import org.jellyfin.androidtv.util.isMediaSessionKeyEvent
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
+import java.util.Objects
 
 class MainActivity : FragmentActivity() {
 	companion object {
@@ -43,6 +49,9 @@ class MainActivity : FragmentActivity() {
 	private val userRepository by inject<UserRepository>()
 	private val screensaverViewModel by viewModel<ScreensaverViewModel>()
 	private var inTransaction = false
+
+	private val danmuConfig: SharedPreferencesDanmuConfig by inject()
+	private val danmuApi: DanmuApi by inject()
 
 	private lateinit var binding: ActivityMainBinding
 
@@ -86,7 +95,44 @@ class MainActivity : FragmentActivity() {
 		binding.background.setContent { AppBackground() }
 		binding.screensaver.setContent { InAppScreensaver() }
 		setContentView(binding.root)
+		getDefaultConfigSetting()
 	}
+
+	private fun getDefaultConfigSetting() {
+		DanmuUtils.submit {
+			try {
+				Timber.i("配置信息 = $danmuConfig")
+				val supportSites = danmuApi.getSupportSites()
+				val danmuSources = supportSites.content.data ?: return@submit
+
+				val size = danmuSources.size;
+				val mergeSites:ArrayList<DanmuApiOption> = ArrayList(size)
+				val localDanmuApiList = danmuConfig.danmuApiList
+				for (danmuSource in danmuSources) {
+					val option = DanmuApiOption()
+					option.source = danmuSource.source
+					option.sourceName = danmuSource.sourceName
+					option.isOpened = danmuSource.opened == true
+
+					for (localDanmuSource in localDanmuApiList) {
+						if (Objects.equals(localDanmuSource.source, danmuSource.source)) {
+							option.isOpened = localDanmuSource.isOpened
+							break
+						}
+					}
+
+					mergeSites.add(option)
+				}
+
+				danmuConfig.danmuApiList = mergeSites
+				Timber.i("更新后配置信息 = ${SimpleDanmuUtil.toJsonString(danmuConfig.danmuApiList)}")
+			} catch (e: Exception) {
+				Timber.i(e, "getDefaultConfigSetting 异常")
+				SimpleDanmuUtil.show(this@MainActivity, "弹幕配置更新失败, 忽略")
+			}
+		}
+	}
+
 
 	override fun onResume() {
 		super.onResume()

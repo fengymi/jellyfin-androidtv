@@ -6,10 +6,14 @@ import coil.ImageLoader
 import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.decode.SvgDecoder
+import com.tv.fengymi.danmu.core.config.DanmuConfigChangeHandler
+import com.tv.fengymi.danmu.core.config.DanmuConfigGetter
 import org.jellyfin.androidtv.BuildConfig
 import org.jellyfin.androidtv.auth.repository.ServerRepository
 import org.jellyfin.androidtv.auth.repository.UserRepository
 import org.jellyfin.androidtv.auth.repository.UserRepositoryImpl
+import org.jellyfin.androidtv.danmu.api.DanmuApi
+import org.jellyfin.androidtv.danmu.utils.SharedPreferencesDanmuConfig
 import org.jellyfin.androidtv.data.eventhandling.SocketHandler
 import org.jellyfin.androidtv.data.model.DataRefreshService
 import org.jellyfin.androidtv.data.repository.CustomMessageRepository
@@ -139,4 +143,9 @@ val appModule = module {
 	single<PlaybackHelper> { SdkPlaybackHelper(get(), get(), get(), get(), get(), get(), get()) }
 
 	factory { (context: Context) -> SearchFragmentDelegate(context, get(), get()) }
+
+	single { DanmuApi(get()) }
+	single { SharedPreferencesDanmuConfig(get()) }
+	single<DanmuConfigGetter> { get<SharedPreferencesDanmuConfig>() }
+	single<DanmuConfigChangeHandler> { get<SharedPreferencesDanmuConfig>() }
 }

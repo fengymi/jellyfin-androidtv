@@ -106,6 +106,7 @@ dependencies {
 			"unstable-snapshot" -> version { strictly("openapi-unstable-SNAPSHOT") }
 		}
 	}
+	implementation(projects.danmu)
 
 	// Kotlin
 	implementation(libs.kotlinx.coroutines)

@@ -25,6 +25,7 @@ androidx-tvprovider = "1.1.0-alpha01"
 androidx-window = "1.3.0"
 androidx-work = "2.9.0"
 coil = "2.7.0"
+danmakuRenderEngine = "0.1.0"
 detekt = "1.23.6"
 jellyfin-androidx-media = "1.3.1+2"
 jellyfin-apiclient = "v0.7.10"
@@ -39,15 +40,22 @@ markwon = "4.6.2"
 mockk = "1.13.12"
 slf4j-timber = "0.0.4"
 timber = "5.0.1"
+agp = "8.5.1"
+junit = "4.13.2"
+junitVersion = "1.1.5"
+espressoCore = "3.5.1"
+material = "1.10.0"
 
 [plugins]
 aboutlibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutlibraries" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+android-library = { id = "com.android.library", version.ref = "agp" }
 
 [libraries]
 # Jellyfin
+danmaku-render-engine = { module = "com.github.bytedance:danmaku-render-engine", version.ref = "danmakuRenderEngine" }
 jellyfin-apiclient = { module = "com.github.jellyfin.jellyfin-sdk-kotlin:android", version.ref = "jellyfin-apiclient" }
 jellyfin-sdk = { module = "org.jellyfin.sdk:jellyfin-core", version.ref = "jellyfin-sdk" }
 
@@ -122,6 +130,10 @@ android-desugar = { module = "com.android.tools:desugar_jdk_libs", version.ref =
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 kotest-assertions = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 [bundles]
 acra = [

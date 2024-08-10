@@ -12,6 +12,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import androidx.core.util.Consumer;
 import androidx.leanback.media.PlaybackTransportControlGlue;
 import androidx.leanback.widget.AbstractDetailsDescriptionPresenter;
 import androidx.leanback.widget.Action;
@@ -23,6 +24,9 @@ import androidx.leanback.widget.PlaybackTransportRowView;
 import androidx.leanback.widget.RowPresenter;
 
 import org.jellyfin.androidtv.R;
+import org.jellyfin.androidtv.danmu.ui.action.DanmuAction;
+import org.jellyfin.androidtv.danmu.ui.playback.DanmuPlaybackController;
+import org.jellyfin.androidtv.danmu.utils.SharedPreferencesDanmuConfig;
 import org.jellyfin.androidtv.preference.UserPreferences;
 import org.jellyfin.androidtv.preference.constant.ClockBehavior;
 import org.jellyfin.androidtv.ui.playback.PlaybackController;
@@ -35,6 +39,7 @@ import org.jellyfin.androidtv.ui.playback.overlay.action.CustomAction;
 import org.jellyfin.androidtv.ui.playback.overlay.action.FastForwardAction;
 import org.jellyfin.androidtv.ui.playback.overlay.action.GuideAction;
 import org.jellyfin.androidtv.ui.playback.overlay.action.PlayPauseAction;
+import org.jellyfin.androidtv.ui.playback.overlay.action.PlayStatusAction;
 import org.jellyfin.androidtv.ui.playback.overlay.action.PlaybackSpeedAction;
 import org.jellyfin.androidtv.ui.playback.overlay.action.PreviousLiveTvChannelAction;
 import org.jellyfin.androidtv.ui.playback.overlay.action.RecordAction;
@@ -64,6 +69,8 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
     private PlaybackSpeedAction playbackSpeedAction;
     private ZoomAction zoomAction;
     private ChapterAction chapterAction;
+    private DanmuAction danmuAction;
+    private PlayStatusAction playStatusAction;
 
     // TV actions
     private PreviousLiveTvChannelAction previousLiveTvChannelAction;
@@ -81,6 +88,7 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
     private final Handler mHandler = new Handler();
     private Runnable mRefreshEndTime;
     private Runnable mRefreshViewVisibility;
+    private final Consumer<Action> buttonRefresher;
 
     private LinearLayout mButtonRef;
 
@@ -101,6 +109,9 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
             else
                 mHandler.postDelayed(mRefreshViewVisibility, 100);
         };
+
+        // 立即刷新按钮信息
+        buttonRefresher = this::notifyActionChanged;
 
         initActions(context);
     }
@@ -191,12 +202,20 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
         closedCaptionsAction.setLabels(new String[]{context.getString(R.string.lbl_subtitle_track)});
         selectQualityAction = new SelectQualityAction(context, this, KoinJavaComponent.get(UserPreferences.class));
         selectQualityAction.setLabels(new String[]{context.getString(R.string.lbl_quality_profile)});
-        playbackSpeedAction = new PlaybackSpeedAction(context, this, playbackController);
+        playbackSpeedAction = new PlaybackSpeedAction(context, this, playbackController, buttonRefresher, KoinJavaComponent.get(SharedPreferencesDanmuConfig.class));
         playbackSpeedAction.setLabels(new String[]{context.getString(R.string.lbl_playback_speed)});
         zoomAction = new ZoomAction(context, this);
         zoomAction.setLabels(new String[]{context.getString(R.string.lbl_zoom)});
         chapterAction = new ChapterAction(context, this);
         chapterAction.setLabels(new String[]{context.getString(R.string.lbl_chapters)});
+
+        if (playbackController instanceof DanmuPlaybackController) {
+            danmuAction = new DanmuAction(context, this, buttonRefresher, playbackController);
+            danmuAction.setLabels(new String[]{context.getString(R.string.lbl_danmu)});
+        }
+
+        playStatusAction = new PlayStatusAction(context, this, playbackController);
+        playStatusAction.setLabels(new String[]{context.getString(R.string.playback_info_title)});
 
         previousLiveTvChannelAction = new PreviousLiveTvChannelAction(context, this);
         previousLiveTvChannelAction.setLabels(new String[]{context.getString(R.string.lbl_prev_item)});
@@ -273,6 +292,14 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
         if (!playerAdapter.isLiveTv()) {
             secondaryActionsAdapter.add(playbackSpeedAction);
             secondaryActionsAdapter.add(selectQualityAction);
+
+            if (danmuAction != null) {
+                secondaryActionsAdapter.add(danmuAction);
+            }
+            if (true) {
+//                secondaryActionsAdapter.add(playStatusAction);
+            }
+
         }
 
         secondaryActionsAdapter.add(zoomAction);

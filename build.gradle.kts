@@ -1,6 +1,8 @@
 plugins {
 	alias(libs.plugins.detekt)
+	alias(libs.plugins.android.library) apply false
 	java
+	idea
 }
 
 buildscript {
@@ -13,6 +15,12 @@ buildscript {
 java {
 	toolchain {
 		languageVersion.set(JavaLanguageVersion.of("17"))
+	}
+}
+
+idea {
+	module {
+		isDownloadSources = true
 	}
 }
 

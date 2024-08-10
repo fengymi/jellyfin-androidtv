@@ -41,6 +41,8 @@ import androidx.lifecycle.Lifecycle;
 
 import org.jellyfin.androidtv.R;
 import org.jellyfin.androidtv.constant.CustomMessage;
+import org.jellyfin.androidtv.danmu.ui.playback.DanmuPlaybackController;
+import org.jellyfin.androidtv.danmu.utils.SimpleDanmuUtil;
 import org.jellyfin.androidtv.data.repository.CustomMessageRepository;
 import org.jellyfin.androidtv.data.service.BackgroundService;
 import org.jellyfin.androidtv.databinding.OverlayTvGuideBinding;
@@ -180,8 +182,8 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
         }
 
         int mediaPosition = videoQueueManager.getValue().getCurrentMediaPosition();
-
-        playbackControllerContainer.getValue().setPlaybackController(new PlaybackController(mItemsToPlay, this, mediaPosition));
+        playbackControllerContainer.getValue().setPlaybackController(new DanmuPlaybackController(mItemsToPlay, this, mediaPosition));
+//        playbackControllerContainer.getValue().setPlaybackController(new PlaybackController(mItemsToPlay, this, mediaPosition));
 
         // setup fade task
         mHideTask = () -> {
@@ -238,8 +240,13 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        if (playbackControllerContainer.getValue().getPlaybackController() != null) {
-            playbackControllerContainer.getValue().getPlaybackController().init(new VideoManager((requireActivity()), view, helper), this);
+        PlaybackController playbackController = playbackControllerContainer.getValue().getPlaybackController();
+        if (playbackController != null) {
+            if (playbackController instanceof DanmuPlaybackController) {
+                ((DanmuPlaybackController) playbackController).initWithDanmu(view, new VideoManager((requireActivity()), view, helper), this);
+            } else {
+                playbackController.init(new VideoManager((requireActivity()), view, helper), this);
+            }
         }
     }
 
@@ -499,6 +506,7 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
         }
     }
 
+    private long lastClickBackTime = System.currentTimeMillis();
     private View.OnKeyListener keyListener = new View.OnKeyListener() {
         @Override
         public boolean onKey(View v, int keyCode, KeyEvent event) {
@@ -527,6 +535,15 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
                     } else if (mGuideVisible) {
                         hideGuide();
                         return true;
+                    } else {
+                        // 双击退出
+                        long currentClickTime = System.currentTimeMillis();
+                        long gap = currentClickTime - lastClickBackTime;
+                        lastClickBackTime = currentClickTime;
+                        if (gap > 2000L) {
+                            SimpleDanmuUtil.show(requireContext(), requireContext().getString(R.string.double_click_back_exit_title));
+                            return true;
+                        }
                     }
                 }
 

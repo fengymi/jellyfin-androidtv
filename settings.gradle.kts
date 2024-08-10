@@ -45,5 +45,13 @@ dependencyResolutionManagement {
 				includeVersionByRegex("com.github.jellyfin.jellyfin-sdk-kotlin", ".*", "v0.7.10")
 			}
 		}
+
+		maven("https://artifact.bytedance.com/repository/releases") {
+			content {
+				includeVersionByRegex("com.github.bytedance","danmaku-render-engine", "0.1.0")
+			}
+		}
+
 	}
 }
+include(":danmu")

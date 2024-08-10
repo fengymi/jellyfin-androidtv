@@ -549,4 +549,10 @@
         <item quantity="one">%1$s album</item>
         <item quantity="other">%1$s albums</item>
     </plurals>
+
+    <string name="lbl_danmu">Danmu Setting</string>
+    <string name="double_click_back_exit_title">Press back again to exit</string>
+    <string name="playback_info_title">Playback Info</string>
+    <string name="streaming_info_title">Streaming Info</string>
+    <string name="original_info_title">Original Media Info</string>
 </resources>

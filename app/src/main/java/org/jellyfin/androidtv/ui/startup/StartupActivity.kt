@@ -15,6 +15,7 @@ import androidx.fragment.app.replace
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import com.tv.fengymi.danmu.utils.DanmuUtils
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
@@ -27,6 +28,9 @@ import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.auth.repository.SessionRepository
 import org.jellyfin.androidtv.auth.repository.SessionRepositoryState
 import org.jellyfin.androidtv.auth.repository.UserRepository
+import org.jellyfin.androidtv.danmu.api.DanmuApi
+import org.jellyfin.androidtv.danmu.utils.SharedPreferencesDanmuConfig
+import org.jellyfin.androidtv.danmu.utils.SimpleDanmuUtil
 import org.jellyfin.androidtv.databinding.ActivityMainBinding
 import org.jellyfin.androidtv.ui.background.AppBackground
 import org.jellyfin.androidtv.ui.browsing.MainActivity
@@ -82,6 +86,10 @@ class StartupActivity : FragmentActivity() {
 		applyTheme()
 
 		super.onCreate(savedInstanceState)
+//		ApplicationLanguageUtils.setDefaultLocale(resources, Locale.CHINA)
+//		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+//			Timber.i("current StartupActivity change locales  = ${resources.configuration.locales}")
+//		}
 
 		binding = ActivityMainBinding.inflate(layoutInflater)
 		binding.background.setContent { AppBackground() }
