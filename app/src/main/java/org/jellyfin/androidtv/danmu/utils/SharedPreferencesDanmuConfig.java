@@ -8,6 +8,7 @@ import com.tv.fengymi.danmu.core.config.DanmuConfigChangeHandler;
 import com.tv.fengymi.danmu.core.config.DanmuConfigGetter;
 import com.tv.fengymi.danmu.model.DanmuApiOption;
 
+import org.jellyfin.androidtv.danmu.model.AutoSkipModel;
 import org.jellyfin.apiclient.serialization.GsonJsonSerializer;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -15,7 +16,9 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -23,6 +26,7 @@ import timber.log.Timber;
 
 public class SharedPreferencesDanmuConfig implements DanmuConfigGetter, DanmuConfigChangeHandler {
     private static final String DANMU_SETTING = "fengymi_danmu_setting";
+    private static final long AUTO_SKIP_EXPIRE_TIME = 6 * 30 * 24 * 3600 * 1000L;
 
     public static final String OPEN_KEY = "open";
     public static final String FONT_SIZE_KEY = "fontSize";
@@ -30,6 +34,8 @@ public class SharedPreferencesDanmuConfig implements DanmuConfigGetter, DanmuCon
     public static final String POSITION_KEY = "position";
     public static final String APIS_KEY = "apis";
     public static final String VIDEO_SPEED_KEY = "videoSpeed";
+
+    public static final String AUTO_SKIP_TIMES = "autoSkipTime";
 
     private static final int DEFAULT_FONT_SIZE = 30;
     private static final int DEFAULT_SPEED = 9;
@@ -64,6 +70,8 @@ public class SharedPreferencesDanmuConfig implements DanmuConfigGetter, DanmuCon
      */
     private float videoSpeed;
 
+    private Map<String, AutoSkipModel> itemAutoSkipTimes;
+
     /**
      * debug模式
      */
@@ -96,6 +104,38 @@ public class SharedPreferencesDanmuConfig implements DanmuConfigGetter, DanmuCon
         } catch (Exception e) {
             Timber.e(e, "加载弹幕来源配置失败");
             this.danmuApiList = new ArrayList<>();
+        }
+
+        try {
+            JSONArray jsonArray = new JSONArray(sharedPreferences.getString(AUTO_SKIP_TIMES, "[]"));
+            Map<String, AutoSkipModel> autoSkipModelHashMap = new HashMap<>();
+            long expireTime = System.currentTimeMillis() - AUTO_SKIP_EXPIRE_TIME;
+            boolean needDelete = false;
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject autoSkipJSON = jsonArray.getJSONObject(i);
+                long cTime = autoSkipJSON.getLong("cTime");
+                if (cTime < expireTime || autoSkipJSON.isNull("id")) {
+                    needDelete = true;
+                    continue;
+                }
+
+                AutoSkipModel autoSkipModel = new AutoSkipModel();
+                autoSkipModel.setTsTime(autoSkipJSON.getInt("tsTime"));
+                autoSkipModel.setTeTime(autoSkipJSON.getInt("teTime"));
+                autoSkipModel.setWsTime(autoSkipJSON.getInt("wsTime"));
+                autoSkipModel.setWeTime(autoSkipJSON.getInt("weTime"));
+                autoSkipModel.setcTime(autoSkipJSON.getLong("cTime"));
+                autoSkipModel.setId(autoSkipJSON.getString("id"));
+                autoSkipModelHashMap.put(autoSkipModel.getId(), autoSkipModel);
+            }
+
+            this.itemAutoSkipTimes = autoSkipModelHashMap;
+            if (needDelete) {
+                updateAutoSkipModels();
+            }
+        } catch (Exception e) {
+            Timber.e(e, "加载片头片尾缓存记录失败");
+            this.itemAutoSkipTimes = new HashMap<>();
         }
     }
 
@@ -159,6 +199,19 @@ public class SharedPreferencesDanmuConfig implements DanmuConfigGetter, DanmuCon
                 .collect(Collectors.toSet());
     }
 
+    public AutoSkipModel getAutoSkipModel(String id) {
+        return itemAutoSkipTimes.get(id);
+    }
+
+    public void addAutoSkipModel(AutoSkipModel autoSkipModel) {
+        itemAutoSkipTimes.put(autoSkipModel.getId(), autoSkipModel);
+        updateAutoSkipModels();
+    }
+
+    private void updateAutoSkipModels() {
+        saveOneSetting(AUTO_SKIP_TIMES, itemAutoSkipTimes.values());
+    }
+
     @Override
     public int getSpeed() {
         return (int) (speed * videoSpeed);
@@ -181,7 +234,7 @@ public class SharedPreferencesDanmuConfig implements DanmuConfigGetter, DanmuCon
 
     @Override
     public boolean isDebug() {
-        return false;
+        return debug;
     }
 
     protected SharedPreferences getSharedPreferences(Context context) {

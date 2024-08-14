@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -41,6 +42,7 @@ import androidx.lifecycle.Lifecycle;
 
 import org.jellyfin.androidtv.R;
 import org.jellyfin.androidtv.constant.CustomMessage;
+import org.jellyfin.androidtv.danmu.ui.layout.AutoSkipTipLinearLayout;
 import org.jellyfin.androidtv.danmu.ui.playback.DanmuPlaybackController;
 import org.jellyfin.androidtv.danmu.utils.SimpleDanmuUtil;
 import org.jellyfin.androidtv.data.repository.CustomMessageRepository;
@@ -134,6 +136,8 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
     private boolean mPopupPanelVisible = false;
 
     private LeanbackOverlayFragment leanbackOverlayFragment;
+    private FrameLayout playbackViewExtraSetting;
+    private AutoSkipTipLinearLayout autoSkipTipLinearLayout;
 
     // Subtitle fields
     private static final int SUBTITLE_PADDING = 20;
@@ -202,6 +206,9 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
         binding = VlcPlayerInterfaceBinding.inflate(inflater, container, false);
         binding.textClock.setVideoPlayer(true);
 
+        playbackViewExtraSetting = binding.playbackViewExtraSetting;
+        autoSkipTipLinearLayout = binding.bottomTipInfo.findViewById(R.id.auto_skip_info);
+
         // inject the RowsSupportFragment in the popup container
         if (getChildFragmentManager().findFragmentById(R.id.rows_area) == null) {
             mPopupRowsFragment = new RowsSupportFragment();
@@ -244,6 +251,7 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
         if (playbackController != null) {
             if (playbackController instanceof DanmuPlaybackController) {
                 ((DanmuPlaybackController) playbackController).initWithDanmu(view, new VideoManager((requireActivity()), view, helper), this);
+                ((DanmuPlaybackController) playbackController).setAutoSkipTip(autoSkipTipLinearLayout);
             } else {
                 playbackController.init(new VideoManager((requireActivity()), view, helper), this);
             }
@@ -443,8 +451,18 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
         }
     };
 
+    /**
+     * 记录最后点击返回按钮的时间
+     */
+    private long lastClickBackTime;
+    private long currentClickBackTime;
     @Override
     public boolean onKey(View v, int keyCode, KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_UP && (keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_BUTTON_B || keyCode == KeyEvent.KEYCODE_ESCAPE)) {
+            lastClickBackTime = currentClickBackTime;
+            currentClickBackTime = System.currentTimeMillis();
+        }
+
         if (event.isLongPress()) {
             if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) {
                 if (mSelectedProgramView instanceof ProgramGridCell)
@@ -460,6 +478,24 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
             }
         } else if (event.getAction() == KeyEvent.ACTION_UP) {
             if (keyListener.onKey(v, keyCode, event)) return true;
+            // 底部提示信息
+            if (autoSkipTipLinearLayout != null) {
+                if (autoSkipTipLinearLayout.onKey(v, keyCode, event)) {
+                    return true;
+                }
+            }
+
+            // 设置页面
+            if (playbackViewExtraSetting != null) {
+                if (View.VISIBLE == playbackViewExtraSetting.getVisibility()) {
+                    boolean isDoubleClick = System.currentTimeMillis() - lastClickBackTime < 3000L;
+                    if (isDoubleClick && (keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_BUTTON_B || keyCode == KeyEvent.KEYCODE_ESCAPE)) {
+                        currentClickBackTime = 0L;
+                        playbackViewExtraSetting.setVisibility(View.GONE);
+                    }
+                    return true;
+                }
+            }
 
             if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) {
                 if ((event.getFlags() & KeyEvent.FLAG_CANCELED_LONG_PRESS) == 0) {
@@ -506,7 +542,6 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
         }
     }
 
-    private long lastClickBackTime = System.currentTimeMillis();
     private View.OnKeyListener keyListener = new View.OnKeyListener() {
         @Override
         public boolean onKey(View v, int keyCode, KeyEvent event) {
@@ -535,12 +570,9 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
                     } else if (mGuideVisible) {
                         hideGuide();
                         return true;
-                    } else {
+                    } else if (!mIsVisible) {
                         // 双击退出
-                        long currentClickTime = System.currentTimeMillis();
-                        long gap = currentClickTime - lastClickBackTime;
-                        lastClickBackTime = currentClickTime;
-                        if (gap > 2000L) {
+                        if (System.currentTimeMillis() - lastClickBackTime > 3000L) {
                             SimpleDanmuUtil.show(requireContext(), requireContext().getString(R.string.double_click_back_exit_title));
                             return true;
                         }

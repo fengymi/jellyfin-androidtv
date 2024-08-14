@@ -12,7 +12,7 @@ import java.util.Random;
 import timber.log.Timber;
 
 public class DanmuCollision {
-    private DanmuConfigGetter danmuConfig;
+    private final DanmuConfigGetter danmuConfig;
     private final Random random = new Random();
     private final Danmu initDanmu = new Danmu("", 0L, Color.WHITE, 0, 0);
     /**
@@ -23,8 +23,10 @@ public class DanmuCollision {
     private int width;
     private int height;
 
+    /**
+     * 记录最后弹幕的位置
+     */
     private Danmu[] lastDanmu;
-
 
     public DanmuCollision(int height, int width, DanmuConfigGetter danmuConfig) {
         this.height = height;
@@ -34,55 +36,32 @@ public class DanmuCollision {
             return;
         }
 
-        init(false);
+        reset(true, true);
     }
 
-    public void reset(boolean resetLines, boolean resetLastDanmus) {
-        if (resetLines || this.lastDanmu == null) {
-            init(resetLastDanmus);
+    /**
+     * 重置计算器信息
+     * @param resetLine 重置行数(涉及 位置、字体大小修改)
+     * @param resetLastDanmu 重置最后的弹幕信息(涉及弹幕数据发生变化)
+     */
+    public void reset(boolean resetLine, boolean resetLastDanmu) {
+        if (resetLastDanmu) {
+            resetLastDanmus();
             return;
         }
 
-        resetLastDanmus(this.lastDanmu.length, resetLastDanmus);
-    }
-
-    protected void resetLastDanmus(int size, boolean forceReset) {
-//        DanmuSettingUtils.log("重新计算屏幕位置 size=" + size + ", forceReset=" + forceReset);
-        Danmu[] lastAllDanmus = new Danmu[size];
-        if (this.lastDanmu == null || forceReset) {
-            Arrays.fill(lastAllDanmus, initDanmu);
-            this.lastDanmu = lastAllDanmus;
-            return;
-        }
-
-        int minSize = Math.min(size, lastDanmu.length);
-        System.arraycopy(this.lastDanmu, 0, lastAllDanmus, 0, minSize);
-        if (this.lastDanmu.length < size) {
-            Arrays.fill(lastAllDanmus, this.lastDanmu.length, size, initDanmu);
-        }
-        this.lastDanmu = lastAllDanmus;
-    }
-
-    protected void init(boolean forceReset) {
-        // 上下各10 间隔10
-        // x = (height - lineGap) / (fontSize + 10)
-        int canUseHeight = height / danmuConfig.getPosition();
-        int totalLines = (canUseHeight - LINE_GAP) / (danmuConfig.getFontSize() + LINE_GAP);
-        if (totalLines <= 0) {
-            return;
-        }
-
-        resetLastDanmus(totalLines, forceReset);
-    }
-
-    public void resetDanmuXY(List<Danmu> danmus, int originWidth, long currentPlayTimestamp) {
-        Danmu[] lineLastTime = this.lastDanmu;
-        for (Danmu danmu : danmus) {
-            initDanmuXY(lineLastTime, danmu, true, originWidth, currentPlayTimestamp);
+        if (resetLine) {
+            resetLines();
         }
     }
 
-    public void convertAndInit(List<Danmu> resultDanmu, List<Danmu> someDanmu, long currentPlayTimestamp) {
+    /**
+     * 计算弹幕坐标
+     * @param resultDanmu 结果集
+     * @param someDanmu 需要计算的弹幕集合
+     * @param currentPlayTimestamp 当前播放时间
+     */
+    public void calculateDanmuXY(List<Danmu> resultDanmu, List<Danmu> someDanmu, long currentPlayTimestamp) {
         if (someDanmu == null || someDanmu.isEmpty()) {
             return;
         }
@@ -92,6 +71,59 @@ public class DanmuCollision {
             initDanmuXY(lastDanmu, danmu, false, width, currentPlayTimestamp);
             resultDanmu.add(danmu);
         }
+    }
+
+    /**
+     * 修改窗口大小
+     * @param height 高度
+     * @param width 宽度
+     */
+    public void changeWindows(int height, int width) {
+        boolean needResetLines = this.height != height;
+        this.height = height;
+        this.width = width;
+        if (needResetLines) {
+            resetLines();
+        }
+    }
+
+    /**
+     * 重置弹幕行数和最后一行数据
+     */
+    private void resetLines() {
+        // 上下各10 间隔10
+        // x = (height - lineGap) / (fontSize + 10)
+        int canUseHeight = height / danmuConfig.getPosition();
+        int totalLines = (canUseHeight - LINE_GAP) / (danmuConfig.getFontSize() + LINE_GAP);
+        int realLines = Math.max(totalLines, 0);
+        // 填充最后一个弹幕信息
+        if (this.lastDanmu == null) {
+            Danmu[] lastAllDanmus = new Danmu[realLines];
+            Arrays.fill(lastAllDanmus, initDanmu);
+            this.lastDanmu = lastAllDanmus;
+            return;
+        }
+
+        // 复制原始弹幕最后一个
+        Danmu[] lastAllDanmus = new Danmu[realLines];
+        int minSize = Math.min(realLines, lastDanmu.length);
+        System.arraycopy(this.lastDanmu, 0, lastAllDanmus, 0, minSize);
+        if (this.lastDanmu.length < realLines) {
+            Arrays.fill(lastAllDanmus, this.lastDanmu.length, realLines, initDanmu);
+        }
+        this.lastDanmu = lastAllDanmus;
+    }
+
+    /**
+     * 重新计算每行最后的弹幕
+     */
+    private void resetLastDanmus() {
+        if (this.lastDanmu == null) {
+            resetLines();
+            return;
+        }
+
+        Arrays.fill(this.lastDanmu, initDanmu);
     }
 
     /**
@@ -124,18 +156,23 @@ public class DanmuCollision {
         }
     }
 
-    private int getMatchIndex(Danmu[] lineLastTime) {
-        int startIndex = random.nextInt(lineLastTime.length);
+    /**
+     * 根据当前弹幕信息计算最匹配的一行数据
+     * @param lastLineDanmus 每行最后一个弹幕信息
+     * @return 匹配的行
+     */
+    private int getMatchIndex(Danmu[] lastLineDanmus) {
+        int startIndex = random.nextInt(lastLineDanmus.length);
 
         int minIndex = startIndex;
-        for (int i = startIndex; i < lineLastTime.length + startIndex; i++) {
-            int realIndex = i % lineLastTime.length;
-            if (lineLastTime[realIndex].getLastX(danmuConfig.getFontSize()) < this.width) {
+        for (int i = startIndex; i < lastLineDanmus.length + startIndex; i++) {
+            int realIndex = i % lastLineDanmus.length;
+            if (lastLineDanmus[realIndex].getLastX(danmuConfig.getFontSize()) < this.width) {
                 minIndex = realIndex;
                 break;
             }
 
-            if (lineLastTime[realIndex].getLastX(danmuConfig.getFontSize()) < lineLastTime[minIndex].getLastX(danmuConfig.getFontSize())) {
+            if (lastLineDanmus[realIndex].getLastX(danmuConfig.getFontSize()) < lastLineDanmus[minIndex].getLastX(danmuConfig.getFontSize())) {
                 minIndex = realIndex;
             }
         }
@@ -144,15 +181,6 @@ public class DanmuCollision {
 
     public Danmu[] getLastDanmu() {
         return lastDanmu;
-    }
-
-
-    public boolean changeWindows(int height, int width, boolean needInit) {
-        boolean needChange = this.height != height || this.width != width;
-        this.height = height;
-        this.width = width;
-        init(false);
-        return needChange;
     }
 }
 

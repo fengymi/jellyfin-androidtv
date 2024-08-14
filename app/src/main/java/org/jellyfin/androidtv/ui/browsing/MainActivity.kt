@@ -2,6 +2,7 @@ package org.jellyfin.androidtv.ui.browsing
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.DisplayMetrics
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
@@ -38,6 +39,7 @@ import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
 import java.util.Objects
+
 
 class MainActivity : FragmentActivity() {
 	companion object {
@@ -99,6 +101,14 @@ class MainActivity : FragmentActivity() {
 	}
 
 	private fun getDefaultConfigSetting() {
+		try {
+			val displayMetrics = DisplayMetrics()
+			windowManager.defaultDisplay.getMetrics(displayMetrics)
+			Timber.d("当前屏幕信息 ${displayMetrics.widthPixels} x ${displayMetrics.heightPixels}")
+		} catch (e: Exception) {
+			Timber.d(e, "获取当前屏幕信息异常")
+		}
+
 		DanmuUtils.submit {
 			try {
 				Timber.i("配置信息 = $danmuConfig")

@@ -22,9 +22,22 @@ public interface DanmuControllerHandler {
     void pause();
 
     /**
+     * 跳跃播放进度
+     * @param currentPlayProcess 当前播放进度
+     */
+    void skipPlayProcess(long currentPlayProcess);
+
+    void error();
+
+    /**
      * 终止
      */
     void stop();
+
+    /**
+     * 清除当前全部弹幕
+     */
+    void clearAll();
 
     /**
      * 添加弹幕

@@ -24,7 +24,9 @@ import androidx.leanback.widget.PlaybackTransportRowView;
 import androidx.leanback.widget.RowPresenter;
 
 import org.jellyfin.androidtv.R;
+import org.jellyfin.androidtv.danmu.ui.action.BingeWatchingAction;
 import org.jellyfin.androidtv.danmu.ui.action.DanmuAction;
+import org.jellyfin.androidtv.danmu.ui.action.PlayInfoAction;
 import org.jellyfin.androidtv.danmu.ui.playback.DanmuPlaybackController;
 import org.jellyfin.androidtv.danmu.utils.SharedPreferencesDanmuConfig;
 import org.jellyfin.androidtv.preference.UserPreferences;
@@ -39,7 +41,6 @@ import org.jellyfin.androidtv.ui.playback.overlay.action.CustomAction;
 import org.jellyfin.androidtv.ui.playback.overlay.action.FastForwardAction;
 import org.jellyfin.androidtv.ui.playback.overlay.action.GuideAction;
 import org.jellyfin.androidtv.ui.playback.overlay.action.PlayPauseAction;
-import org.jellyfin.androidtv.ui.playback.overlay.action.PlayStatusAction;
 import org.jellyfin.androidtv.ui.playback.overlay.action.PlaybackSpeedAction;
 import org.jellyfin.androidtv.ui.playback.overlay.action.PreviousLiveTvChannelAction;
 import org.jellyfin.androidtv.ui.playback.overlay.action.RecordAction;
@@ -70,7 +71,8 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
     private ZoomAction zoomAction;
     private ChapterAction chapterAction;
     private DanmuAction danmuAction;
-    private PlayStatusAction playStatusAction;
+    private PlayInfoAction playInfoAction;
+    private BingeWatchingAction bingeWatchingAction;
 
     // TV actions
     private PreviousLiveTvChannelAction previousLiveTvChannelAction;
@@ -214,8 +216,10 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
             danmuAction.setLabels(new String[]{context.getString(R.string.lbl_danmu)});
         }
 
-        playStatusAction = new PlayStatusAction(context, this, playbackController);
-        playStatusAction.setLabels(new String[]{context.getString(R.string.playback_info_title)});
+        playInfoAction = new PlayInfoAction(context, this, playbackController);
+        playInfoAction.setLabels(new String[]{context.getString(R.string.playback_info_title)});
+
+        bingeWatchingAction = new BingeWatchingAction(context, this);
 
         previousLiveTvChannelAction = new PreviousLiveTvChannelAction(context, this);
         previousLiveTvChannelAction.setLabels(new String[]{context.getString(R.string.lbl_prev_item)});
@@ -296,10 +300,12 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
             if (danmuAction != null) {
                 secondaryActionsAdapter.add(danmuAction);
             }
-            if (true) {
-//                secondaryActionsAdapter.add(playStatusAction);
+
+            if (playerAdapter.getCurrentlyPlayingItem().getSeasonId() != null) {
+                secondaryActionsAdapter.add(bingeWatchingAction);
             }
 
+//            secondaryActionsAdapter.add(playInfoAction);
         }
 
         secondaryActionsAdapter.add(zoomAction);

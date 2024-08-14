@@ -555,4 +555,9 @@
     <string name="playback_info_title">Playback Info</string>
     <string name="streaming_info_title">Streaming Info</string>
     <string name="original_info_title">Original Media Info</string>
+    <string name="time_split"> ~ </string>
+    <string name="binge_watching_opening">opening</string>
+    <string name="binge_watching_ending">ending</string>
+    <string name="auto_skip_tip">Automatically enter after playing %s, %s, press the back button to cancel …</string>
+    <string name="quick_skip">quick skip</string>
 </resources>

@@ -16,7 +16,11 @@ public class SimpleDanmuUtil {
     }
 
     public static void show(Context context, String message) {
-        getMainHandler().post(() -> Toast.makeText(context, message, Toast.LENGTH_SHORT).show());
+        show(context, message, Toast.LENGTH_SHORT);
+    }
+
+    public static void show(Context context, String message, int time) {
+        getMainHandler().post(() -> Toast.makeText(context, message, time).show());
     }
 
     public static Handler getMainHandler() {

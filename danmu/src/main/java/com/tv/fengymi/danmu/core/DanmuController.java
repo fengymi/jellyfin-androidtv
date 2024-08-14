@@ -5,10 +5,10 @@ import com.tv.fengymi.danmu.core.config.DanmuConfigChangeHandler;
 import com.tv.fengymi.danmu.core.config.DanmuConfigGetter;
 import com.tv.fengymi.danmu.core.container.CopyOnWriteDanmuContainer;
 import com.tv.fengymi.danmu.model.Danmu;
+import com.tv.fengymi.danmu.model.MockDanmuConfig;
 import com.tv.fengymi.danmu.model.PlayStateEnum;
 
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 
 import timber.log.Timber;
 
@@ -17,9 +17,6 @@ public class DanmuController implements DanmuControllerHandler, DanmuConfigChang
     protected PlayStateEnum state;
     protected DanmuConfigGetter danmuConfig;
 
-    protected int width;
-    protected int height;
-
     public DanmuController() {
         this(new CopyOnWriteDanmuContainer());
     }
@@ -27,6 +24,7 @@ public class DanmuController implements DanmuControllerHandler, DanmuConfigChang
     public DanmuController(DanmuContainer danmuContainer) {
         this.danmuContainer = danmuContainer;
         this.state = PlayStateEnum.INIT;
+        this.danmuConfig = new MockDanmuConfig();
     }
 
     /**
@@ -64,14 +62,12 @@ public class DanmuController implements DanmuControllerHandler, DanmuConfigChang
      * @param height 高度
      */
     public void setWindows(int width, int height) {
-        this.width = width;
-        this.height = height;
         danmuContainer.setWindows(width, height);
     }
 
     @Override
     public void currentPosition(long playPosition) {
-        danmuContainer.setCurrentPosition(playPosition);
+        danmuContainer.setCurrentPosition(playPosition, false);
     }
 
     @Override
@@ -89,10 +85,27 @@ public class DanmuController implements DanmuControllerHandler, DanmuConfigChang
     }
 
     @Override
+    public void skipPlayProcess(long currentPlayProcess) {
+        danmuContainer.setCurrentPosition(currentPlayProcess, true);
+    }
+
+    @Override
+    public void error() {
+        state = PlayStateEnum.PAUSE;
+        danmuContainer.pause();
+        Timber.d("播放器异常");
+    }
+
+    @Override
     public void stop() {
         state = PlayStateEnum.STOP;
         danmuContainer.stop();
         Timber.d("停止");
+    }
+
+    @Override
+    public void clearAll() {
+        danmuContainer.clearAll();
     }
 
     @Override
@@ -102,13 +115,8 @@ public class DanmuController implements DanmuControllerHandler, DanmuConfigChang
 
     @Override
     public void resetAllDanmus(List<Danmu> danmus, long playPosition) {
-        danmuContainer.setCurrentPosition(playPosition);
+        danmuContainer.setCurrentPosition(playPosition, true);
         resetAllDanmus(danmus);
-
-        for (Danmu danmu : danmus) {
-            danmu.setX(width);
-            danmu.setY(ThreadLocalRandom.current().nextInt(height/2) + height/4);
-        }
     }
 
     @Override

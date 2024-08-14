@@ -21,17 +21,18 @@ public class CopyOnWriteDanmuContainer extends DanmuContainer {
     }
 
     @Override
-    public synchronized void doResetDanmus(List<Danmu> danmus) {
+    public void doResetDanmus(List<Danmu> danmus) {
         if (danmus == null) {
             throw new RuntimeException("弹幕信息不能为null");
         }
         this.danmus = new CopyOnWriteArrayList<>(danmus);
         Collections.sort(this.danmus);
+        clearAll.compareAndSet(false, true);
         reset(true);
     }
 
     @Override
-    public synchronized void doAddDanmu(Danmu danmu) {
+    public void doAddDanmu(Danmu danmu) {
         if (danmu == null) {
             throw new RuntimeException("弹幕信息不能为null");
         }

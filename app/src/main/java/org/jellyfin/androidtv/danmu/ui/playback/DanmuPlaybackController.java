@@ -1,6 +1,7 @@
 package org.jellyfin.androidtv.danmu.ui.playback;
 
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
@@ -14,11 +15,14 @@ import com.tv.fengymi.danmu.view.DanmuSurfaceView;
 
 import org.jellyfin.androidtv.R;
 import org.jellyfin.androidtv.danmu.api.DanmuApi;
+import org.jellyfin.androidtv.danmu.model.AutoSkipModel;
 import org.jellyfin.androidtv.danmu.model.DanmuEvent;
 import org.jellyfin.androidtv.danmu.model.DanmuResult;
 import org.jellyfin.androidtv.danmu.model.DanmuSource;
+import org.jellyfin.androidtv.danmu.ui.layout.AutoSkipTipLinearLayout;
 import org.jellyfin.androidtv.danmu.utils.SharedPreferencesDanmuConfig;
 import org.jellyfin.androidtv.danmu.utils.SimpleDanmuUtil;
+import org.jellyfin.androidtv.data.compat.StreamInfo;
 import org.jellyfin.androidtv.ui.playback.CustomPlaybackOverlayFragment;
 import org.jellyfin.androidtv.ui.playback.PlaybackController;
 import org.jellyfin.androidtv.ui.playback.VideoManager;
@@ -44,10 +48,19 @@ public class DanmuPlaybackController extends PlaybackController implements Danmu
     private final SharedPreferencesDanmuConfig config;
     private final DanmuApi danmuApi;
     private long currentPosition;
-
     private UUID danmuLoadedId;
 
-    static int i;
+    private AutoSkipTipLinearLayout autoSkipTip;
+    private AutoSkipModel autoSkipModel;
+    private long maxPosition;
+    private boolean showed;
+    private boolean startSkipped;
+    private boolean endSkipped;
+    private boolean cancelSkipEnd;
+
+    public void setAutoSkipModel(AutoSkipModel autoSkipModel) {
+        this.autoSkipModel = autoSkipModel;
+    }
 
     public DanmuPlaybackController(List<BaseItemDto> items, CustomPlaybackOverlayFragment fragment) {
         this(items, fragment, 0);
@@ -61,7 +74,6 @@ public class DanmuPlaybackController extends PlaybackController implements Danmu
         this.danmuConfigChangeHandler.addDanmuConfigChangeHandler(config);
 
         this.danmuLoadedId = null;
-        Timber.d("DanmuPlaybackController 被初始化 i=%s ", (++i));
     }
 
     public void initWithDanmu(@NonNull View view, @NonNull VideoManager mgr, @NonNull CustomPlaybackOverlayFragment fragment) {
@@ -73,10 +85,6 @@ public class DanmuPlaybackController extends PlaybackController implements Danmu
             try {
                 if (danmuControllerHandler == null) {
                     Timber.i("danmuControllerHandler is null");
-                    return;
-                }
-
-                if (!config.isOpen()) {
                     return;
                 }
 
@@ -93,9 +101,9 @@ public class DanmuPlaybackController extends PlaybackController implements Danmu
                 }
 
                 SimpleDanmuUtil.show(view.getContext(), "一共加载" + danmus.size() + "条弹幕");
-                danmuControllerHandler.resetAllDanmus(danmus, currentPosition);
-
+                danmuController.resetAllDanmus(danmus, currentPosition);
                 danmuLoadedId = id;
+
                 danmuController.start();
             } catch (Exception e) {
                 Timber.e(e, "加载弹幕异常");
@@ -106,7 +114,25 @@ public class DanmuPlaybackController extends PlaybackController implements Danmu
         this.danmuConfigChangeHandler.addDanmuConfigChangeHandler(danmuView.getDanmuConfigChangeHandler());
         super.init(mgr, fragment);
 
-        loadDanmu();
+        preLoadDanmu();
+    }
+
+
+    @Override
+    protected void doStartItem(BaseItemDto item, long position, StreamInfo response) {
+        danmuLoadedId = null;
+        initSkip(item);
+        loadDanmu(item);
+    }
+
+    protected void initSkip(BaseItemDto item) {
+        String uuid = (item.getSeasonId() == null ? item.getId() : item.getSeasonId()).toString();
+        maxPosition = getDuration();
+        this.autoSkipModel = config.getAutoSkipModel(uuid);
+        showed = false;
+        startSkipped = false;
+        endSkipped = false;
+        cancelSkipEnd = false;
     }
 
     @Override
@@ -119,8 +145,9 @@ public class DanmuPlaybackController extends PlaybackController implements Danmu
     @Override
     public void onError() {
         super.onError();
+        Timber.d("onError");
         if (danmuControllerHandler != null) {
-            danmuControllerHandler.stop();
+            danmuControllerHandler.error();
         }
     }
 
@@ -134,9 +161,55 @@ public class DanmuPlaybackController extends PlaybackController implements Danmu
     public void onProgress() {
         super.onProgress();
         this.currentPosition = getCurrentPosition();
+        if (canSeek() && autoSkipModel != null) {
+            AutoSkipModel autoSkipModel = this.autoSkipModel;
+            int tsTime = autoSkipModel.getTsTime();
+            int teTime = autoSkipModel.getTeTime();
+            if (teTime > 0 && !startSkipped) {
+                if (this.currentPosition > tsTime && this.currentPosition < teTime * 1000L) {
+                    seek(teTime * 1000L);
+                    startSkipped = true;
+                    SimpleDanmuUtil.show(danmuView.getContext(), "自动跳过片头");
+                }
+            }
+
+            int wsTime = autoSkipModel.getWsTime();
+            int weTime = autoSkipModel.getWeTime();
+            if (wsTime > 0 && !endSkipped && hasNextItem() && !cancelSkipEnd) {
+                long wsTimestamp = wsTime * 1000L;
+                if (this.autoSkipTip != null) {
+                    if (wsTimestamp - currentPosition < 5000L && !showed) {
+                        showed = true;
+                        BaseItemDto nextItem = getNextItem();
+                        autoSkipTip.showOverplay(
+                                nextItem.getName(),
+                                wsTimestamp - currentPosition,
+                                this::next,
+                                () -> cancelSkipEnd = true);
+                    }
+                } else {
+                    if (wsTimestamp < currentPosition) {
+                        endSkipped = true;
+                        if (weTime == 0 || weTime * 1000L > maxPosition) {
+                            next();
+                        } else {
+                            seek(weTime * 1000L);
+                        }
+                    } else if (wsTimestamp - currentPosition < 5000L && !showed) {
+                        showed = true;
+                        SimpleDanmuUtil.show(danmuView.getContext(), "即将进入下一集", Toast.LENGTH_LONG);
+                    }
+                }
+            }
+        }
+
         if (danmuControllerHandler != null) {
             danmuControllerHandler.currentPosition(currentPosition);
         }
+    }
+
+    public void setAutoSkipTip(AutoSkipTipLinearLayout autoSkipTip) {
+        this.autoSkipTip = autoSkipTip;
     }
 
     @Override
@@ -161,6 +234,7 @@ public class DanmuPlaybackController extends PlaybackController implements Danmu
     @Override
     public void play(long position) {
         super.play(position);
+        this.currentPosition = position;
         if (danmuControllerHandler != null) {
             danmuControllerHandler.restore();
         }
@@ -168,20 +242,71 @@ public class DanmuPlaybackController extends PlaybackController implements Danmu
 
     @Override
     public void setOpen(boolean open) {
+        config.setOpen(open);
         if (open) {
-            loadDanmu();
+            loadDanmu(getCurrentlyPlayingItem());
         }
+    }
+
+    @Override
+    public void fastForward() {
+        super.fastForward();
+        skipPlayProcess();
+    }
+
+    @Override
+    public void rewind() {
+        super.rewind();
+        skipPlayProcess();
+    }
+
+    /**
+     * 跳跃播放进度
+     */
+    public void skipPlayProcess() {
+        if (danmuControllerHandler != null) {
+            danmuControllerHandler.skipPlayProcess(getCurrentPosition());
+        }
+    }
+
+    @Override
+    public void prev() {
+        super.prev();
+        preLoadDanmu();
+    }
+
+    @Override
+    public void next() {
+        super.next();
+        preLoadDanmu();
     }
 
     /**
      * 加载远程弹幕信息
      */
-    protected void loadDanmu() {
-        if (danmuControllerHandler == null) {
+    protected void preLoadDanmu() {
+        if (!config.isOpen() || danmuControllerHandler == null) {
             return;
         }
 
+        danmuLoadedId = null;
+        danmuControllerHandler.pause();
+        danmuControllerHandler.clearAll();
+    }
+
+    protected void loadDanmu(BaseItemDto item) {
+        if (!config.isOpen() || danmuControllerHandler == null) {
+            return;
+        }
         DanmuUtils.submit(fetchDanmuRunnable);
+    }
+
+    protected void postLoadDanmu() {
+        if (!config.isOpen() || danmuControllerHandler == null) {
+            return;
+        }
+
+        danmuControllerHandler.restore();
     }
 
     public DanmuConfigChangeHandler getDanmuConfigChangeHandler() {

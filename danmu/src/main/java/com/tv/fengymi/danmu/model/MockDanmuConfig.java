@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class DanmuConfig implements DanmuConfigGetter, DanmuConfigChangeHandler {
+public class MockDanmuConfig implements DanmuConfigGetter, DanmuConfigChangeHandler {
     private List<DanmuApiOption> danmuApiList;
 
     /**
@@ -27,16 +27,14 @@ public class DanmuConfig implements DanmuConfigGetter, DanmuConfigChangeHandler 
      */
     private int position = 3;
 
-    private int speed = 8;
-
-    private int fps = 30;
+    private int speed = 9;
 
     /**
      * debug模式
      */
     private boolean debug;
 
-    public DanmuConfig() {
+    public MockDanmuConfig() {
     }
 
     public List<DanmuApiOption> getDanmuApiList() {
@@ -45,14 +43,6 @@ public class DanmuConfig implements DanmuConfigGetter, DanmuConfigChangeHandler 
 
     public void setDanmuApiList(List<DanmuApiOption> danmuApiList) {
         this.danmuApiList = danmuApiList;
-    }
-
-    public int getFps() {
-        return fps;
-    }
-
-    public void setFps(int fps) {
-        this.fps = fps;
     }
 
     public Set<String> getAllOpenSites() {

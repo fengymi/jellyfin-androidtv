@@ -21,13 +21,15 @@ import java.util.concurrent.locks.ReentrantLock;
 import timber.log.Timber;
 
 public class DanmuSurfaceController extends DanmuController {
-    private final int fps = 40;
+    private final int fps = danmuConfig.getFps();
     private final long timeGap = 1000L / fps;
     private final SurfaceHolder holder;
     private final Paint paint; // 绘制文本的画笔
     private final Paint stockPaint; // 绘制文本的画笔
+    private Paint fpsPaint;
 
-
+    protected int width;
+    protected int height;
 
     private final Runnable painter;
     private Thread drawThread;
@@ -37,6 +39,10 @@ public class DanmuSurfaceController extends DanmuController {
 
     protected boolean stop;
     private int defaultColor = Color.WHITE;
+
+    private int fpsCount = 0;
+    private String showFpsText = "";
+    private long fpsPreTime = System.currentTimeMillis();
 
     public DanmuSurfaceController(SurfaceHolder holder) {
         holder.setFormat(PixelFormat.TRANSPARENT);
@@ -52,9 +58,9 @@ public class DanmuSurfaceController extends DanmuController {
         stockPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         stockPaint.setStyle(Paint.Style.STROKE);
         stockPaint.setColor(Color.BLACK);
+        stockPaint.setTypeface(Typeface.DEFAULT_BOLD);
         stockPaint.setTextSize(fontSize);
         stockPaint.setStrokeWidth(2f);
-
 
         this.playStateLock = new ReentrantLock();
         this.playStateCondition = this.playStateLock.newCondition();
@@ -79,9 +85,28 @@ public class DanmuSurfaceController extends DanmuController {
     }
 
     @Override
+    public void setWindows(int width, int height) {
+        this.width = width;
+        this.height = height;
+        super.setWindows(width, height);
+    }
+
+    @Override
+    public void skipPlayProcess(long currentPlayProcess) {
+        super.skipPlayProcess(currentPlayProcess);
+        clear();
+    }
+
+    @Override
     public void restore() {
         sateWaitRelease();
         super.restore();
+    }
+
+    @Override
+    public void error() {
+        super.error();
+        clear();
     }
 
     @Override
@@ -92,12 +117,14 @@ public class DanmuSurfaceController extends DanmuController {
             drawThread = new Thread(painter);
             drawThread.start();
         }
+        sateWaitRelease();
     }
 
     @Override
     public void stop() {
         super.stop();
         this.stop = true;
+        clear();
         sateWaitRelease();
         if (this.drawThread != null) {
             try {
@@ -162,6 +189,31 @@ public class DanmuSurfaceController extends DanmuController {
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         // 绘制弹幕
         this.showDanMu(canvas);
+        if (danmuConfig.isDebug()) {
+            this.showFps(canvas);
+        }
+    }
+
+    protected void showFps(Canvas canvas) {
+        long currentTime = System.currentTimeMillis();
+        long time = currentTime - fpsPreTime;
+
+        int fontSize = 20;
+        if (time > 1000L) {
+            if (fpsPaint == null) {
+                fpsPaint = new Paint();
+                fpsPaint.setTextSize(20);
+                fpsPaint.setColor(Color.GREEN);
+            }
+
+            showFpsText = "fps: " + fpsCount * 1000L / time;
+            fpsPreTime = currentTime;
+            fpsCount = 0;
+        } else {
+            fpsCount ++;
+        }
+
+        canvas.drawText(showFpsText, width - showFpsText.length() * fontSize - 30, 10 + fontSize, fpsPaint);
     }
 
     protected void showDanMu(Canvas canvas) {
@@ -180,7 +232,8 @@ public class DanmuSurfaceController extends DanmuController {
                 continue;
             }
 
-            boolean needChangeColor = defaultColor == 2 || danma.getColor() != defaultColor || paint.getColor() != defaultColor;
+            boolean needChangeColor = defaultColor != 2
+                    && danma.getColor() != defaultColor;
             if (needChangeColor) {
                 paint.setColor(danma.getColor());
             }
@@ -201,8 +254,6 @@ public class DanmuSurfaceController extends DanmuController {
 
     @Override
     public void resetAllDanmus(List<Danmu> danmus, long playPosition) {
-        super.resetAllDanmus(danmus);
-
         int count = 0;
         int color = Color.WHITE;
         for (Danmu danmu : danmus) {
@@ -213,6 +264,13 @@ public class DanmuSurfaceController extends DanmuController {
         }
 
         this.defaultColor = count > 0 ? color : 2;
+        super.resetAllDanmus(danmus);
+    }
+
+    @Override
+    public void clearAll() {
+        super.clearAll();
+        clear();
     }
 
     protected void sateWait(boolean needClear) {
@@ -240,6 +298,7 @@ public class DanmuSurfaceController extends DanmuController {
             // 在这里进行弹幕的绘制
             if (canvas != null) {
                 // 清空屏幕
+                getNeedShowDanmus().clear();
                 canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
             } else {
                 Timber.i("不需要执行弹幕渲染 canvas=null");
@@ -250,6 +309,8 @@ public class DanmuSurfaceController extends DanmuController {
                 holder.unlockCanvasAndPost(canvas);
             }
         }
+
+        Timber.d("执行clear进行弹幕清除");
     }
 
     protected void sateWaitRelease() {

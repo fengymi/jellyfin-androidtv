@@ -5,7 +5,7 @@ import androidx.core.util.Function;
 import com.tv.fengymi.danmu.core.config.DanmuConfigChangeHandler;
 import com.tv.fengymi.danmu.core.config.DanmuConfigGetter;
 import com.tv.fengymi.danmu.model.Danmu;
-import com.tv.fengymi.danmu.model.DanmuConfig;
+import com.tv.fengymi.danmu.model.MockDanmuConfig;
 import com.tv.fengymi.danmu.model.PlayStateEnum;
 import com.tv.fengymi.danmu.utils.DanmuUtils;
 import com.tv.fengymi.danmu.utils.SortUtil;
@@ -31,24 +31,35 @@ public abstract class DanmuContainer implements DanmuConfigChangeHandler {
 
     protected DanmuConfigGetter danmuConfig;
     protected DanmuCollision danmuCollision;
-    protected long currentPlayPosition;
 
     protected int width;
     protected int height;
 
+    /**
+     * 弹幕计算锁
+     */
     protected Lock calculteShowLock;
     protected Condition calculteCondition;
     protected AtomicBoolean danmuPrepared;
 
+    /**
+     * 弹幕二级缓存容器
+     */
     protected List<Danmu> needShowDanmus;
     private List<Danmu> cacheNeedShowDanmus;
     private List<Danmu> secondCacheNeedShowDanmus;
 
+    /**
+     * 当前弹幕位置
+     */
+    protected long currentPlayPosition;
     private long lastDanmuPositionTime;
-    private int preIndex = 0;
+    private int preIndex;
+
     private final Danmu baseCalculateDummu = new Danmu("", 0L);
     private Runnable calculator;
     private Thread calculatorThread;
+    protected final AtomicBoolean clearAll = new AtomicBoolean(false);
 
     /**
      * 0 - 停止
@@ -82,7 +93,7 @@ public abstract class DanmuContainer implements DanmuConfigChangeHandler {
      * @return 弹幕配置信息
      */
     protected DanmuConfigGetter createDanmuConfigGetter() {
-        return new DanmuConfig();
+        return new MockDanmuConfig();
     }
 
     /**
@@ -96,6 +107,7 @@ public abstract class DanmuContainer implements DanmuConfigChangeHandler {
         this.needShowDanmus = new ArrayList<>(maxCacheDanmuNums);
         this.cacheNeedShowDanmus = new ArrayList<>(maxCacheDanmuNums);
         this.secondCacheNeedShowDanmus = new ArrayList<>(maxCacheDanmuNums);
+
         calculator = () -> {
             while (state != PlayStateEnum.STOP && !stop) {
                 try {
@@ -116,13 +128,17 @@ public abstract class DanmuContainer implements DanmuConfigChangeHandler {
      */
     public void start() {
         this.state = PlayStateEnum.RUNNING;
-        reset(true);
+
+        // 初始化计算器
+        if (danmuCollision == null) {
+            this.danmuCollision = new DanmuCollision(height, width, danmuConfig);
+        }
+
+        // 启动循环计算
         if (calculatorThread == null || !calculatorThread.isAlive()) {
             calculatorThread = new Thread(calculator);
             calculatorThread.start();
-            return;
         }
-        throw new RuntimeException("当前容器已经启动，请勿重复启动");
     }
 
     /**
@@ -133,13 +149,31 @@ public abstract class DanmuContainer implements DanmuConfigChangeHandler {
     }
 
     /**
+     * 清除全部数据
+     */
+    public void clearAll() {
+        DanmuUtils.submit(() -> {
+            clearAll.compareAndSet(false, true);
+            resetDanmus(Collections.emptyList());
+        });
+    }
+
+    /**
      * 恢复
      */
     public void restore() {
         this.state = PlayStateEnum.RUNNING;
     }
 
-    public void setCurrentPosition(long playPosition) {
+    /**
+     * 设置当前播放时间
+     * @param playPosition 当前播放时间
+     * @param skip 是否快进/后台
+     */
+    public void setCurrentPosition(long playPosition, boolean skip) {
+        if (skip || currentPlayPosition > playPosition) {
+            reset(true);
+        }
         this.currentPlayPosition = playPosition;
     }
 
@@ -164,6 +198,10 @@ public abstract class DanmuContainer implements DanmuConfigChangeHandler {
     }
 
     protected List<Danmu> calculateNeedShowDanmus() {
+        if (width == 0 || height == 0) {
+            return Collections.emptyList();
+        }
+
         return iteratorDanmu(this::doCalculateNeedShowDanmus);
     }
 
@@ -176,14 +214,22 @@ public abstract class DanmuContainer implements DanmuConfigChangeHandler {
                 return Collections.emptyList();
             }
             this.cacheNeedShowDanmus.clear();
+            this.secondCacheNeedShowDanmus.clear();
 
-            // 获取当前显示的弹幕
-            List<Danmu> currentShowDanmus = this.needShowDanmus;
-            // 保留不删除的数据
-            for (Danmu next : currentShowDanmus) {
-                if (!needRemove(next, false)) {
-                    this.cacheNeedShowDanmus.add(next);
+            // 如果标记为全部删除，则不保留当前数据
+            int currentSize = 0;
+            if (!clearAll.get()) {
+                // 获取当前显示的弹幕
+                List<Danmu> currentShowDanmus = this.needShowDanmus;
+                currentSize = currentShowDanmus.size();
+                // 保留不删除的数据
+                for (Danmu next : currentShowDanmus) {
+                    if (!needRemove(next, false)) {
+                        this.cacheNeedShowDanmus.add(next);
+                    }
                 }
+            } else {
+                clearAll.compareAndSet(true, false);
             }
 
             // 获取新增的弹幕
@@ -193,9 +239,9 @@ public abstract class DanmuContainer implements DanmuConfigChangeHandler {
                 return Collections.emptyList();
             }
 
-            danmuCollision.convertAndInit(this.cacheNeedShowDanmus, someDanmu, this.currentPlayPosition);
+            danmuCollision.calculateDanmuXY(this.cacheNeedShowDanmus, someDanmu, this.currentPlayPosition);
             if (danmuConfig.isDebug()) {
-                Timber.d("本次弹幕处理完成 当前=" + cacheNeedShowDanmus.size() + ", 原始=" + currentShowDanmus.size() + ", 新增=" + someDanmu.size() + ", needShowDanmus=" + needShowDanmus.size() + ", currentShowDanmus=" + currentShowDanmus.size() + ", 删除=" + (currentShowDanmus.size() + someDanmu.size() - cacheNeedShowDanmus.size()));
+                Timber.d("本次弹幕处理完成 当前=" + cacheNeedShowDanmus.size() + ", 原始=" + currentSize + ", 新增=" + someDanmu.size() + ", needShowDanmus=" + needShowDanmus.size() + ", currentShowDanmus=" + currentSize + ", 删除=" + (currentSize + someDanmu.size() - cacheNeedShowDanmus.size()));
             }
             updateNeedShowDanmus(this.cacheNeedShowDanmus);
         } catch (Exception e) {
@@ -249,7 +295,7 @@ public abstract class DanmuContainer implements DanmuConfigChangeHandler {
 
     protected void resetNextPosition(Danmu danmu, long needDeathTime) {
         if (danmuConfig.isDebug()) {
-            Timber.d("丢弃弹幕信息: 当前时间: " + currentPlayPosition +", 弹幕开始时间: "+ danmu.getStartTimestamp() + ", x: " + danmu.getX() + ", v: " + danmu.getValue());
+            Timber.e("丢弃弹幕信息: 当前时间: " + currentPlayPosition +", 弹幕开始时间: "+ danmu.getStartTimestamp() + ", x: " + danmu.getX() + ", v: " + danmu.getValue());
         }
         Danmu next = danmu.getNext();
         if (next == null) {
@@ -375,16 +421,16 @@ public abstract class DanmuContainer implements DanmuConfigChangeHandler {
 
     /**
      * 重新计算规则
-     * 需要重新
      */
-    public void reset(boolean forceReset) {
-        if (this.danmuCollision == null) {
-            this.danmuCollision = new DanmuCollision(height, width, danmuConfig);
-        }
+    public void reset(boolean clearAllDanmu) {
+        this.preIndex = -1;
+        this.lastDanmuPositionTime = 0;
+        this.clearAll.set(true);
 
-        if (this.state.isStarted()) {
-            danmuCollision.init(forceReset);
+        if (this.danmuCollision == null) {
+            return;
         }
+        this.danmuCollision.reset(true, clearAllDanmu);
     }
 
     /**
@@ -397,30 +443,23 @@ public abstract class DanmuContainer implements DanmuConfigChangeHandler {
         this.width = width;
         this.height = height;
 
-        if (this.state.isStarted() && hasChange) {
-            reset(true);
+        if (this.danmuCollision != null && hasChange) {
+            this.danmuCollision.changeWindows(height, width);
         }
     }
 
     @Override
     public void setFontSize(int fontSize) {
-        changeWindows();
-    }
-
-    @Override
-    public void setSpeed(int speed) {
+        if (this.danmuCollision != null) {
+            this.danmuCollision.reset(true, false);
+        }
     }
 
     @Override
     public void setPosition(int position) {
-        changeWindows();
-    }
-
-    protected void changeWindows() {
-        if (this.danmuCollision == null) {
-            return;
+        if (this.danmuCollision != null) {
+            this.danmuCollision.reset(true, false);
         }
-        this.danmuCollision.changeWindows(height, width, this.state.isStarted());
     }
 
     @Override
@@ -428,11 +467,6 @@ public abstract class DanmuContainer implements DanmuConfigChangeHandler {
         if (open) {
             asyncNotifyAllDanmuLock();
         }
-    }
-
-    @Override
-    public void setDebug(boolean debug) {
-
     }
 
     /**

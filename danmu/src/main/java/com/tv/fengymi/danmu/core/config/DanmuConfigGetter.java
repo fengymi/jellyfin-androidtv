@@ -18,7 +18,7 @@ public interface DanmuConfigGetter {
      * @return fps值
      */
     default int getFps() {
-        return 30;
+        return 60;
     }
 
     default long getTimeGap() {

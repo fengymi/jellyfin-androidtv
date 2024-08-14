@@ -1,7 +1,5 @@
 package org.jellyfin.androidtv.danmu.ui.action;
 
-import static org.koin.java.KoinJavaComponent.inject;
-
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.view.Gravity;
@@ -26,12 +24,12 @@ import org.jellyfin.androidtv.ui.playback.PlaybackController;
 import org.jellyfin.androidtv.ui.playback.overlay.CustomPlaybackTransportControlGlue;
 import org.jellyfin.androidtv.ui.playback.overlay.VideoPlayerAdapter;
 import org.jellyfin.androidtv.ui.playback.overlay.action.CustomAction;
+import org.koin.java.KoinJavaComponent;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import kotlin.Lazy;
 import timber.log.Timber;
 
 public class DanmuAction extends CustomAction {
@@ -45,14 +43,13 @@ public class DanmuAction extends CustomAction {
         this.context = context;
 
         this.buttonRefresher = buttonRefresher;
-        Lazy<SharedPreferencesDanmuConfig> config = inject(SharedPreferencesDanmuConfig.class);
-        this.danmuSetting = config.getValue();
+        this.danmuSetting = KoinJavaComponent.get(SharedPreferencesDanmuConfig.class);
 
         if (playbackController instanceof DanmuPlaybackController) {
             this.danmuConfigChangeHandler = ((DanmuPlaybackController) playbackController).getDanmuConfigChangeHandler();
         }
 
-        initializeWithIcon(danmuSetting.isOpen()?R.drawable.ic_danmu_open:R.drawable.ic_danmu_close);
+        initializeWithIcon(danmuSetting.isOpen() ? R.drawable.ic_danmu_open : R.drawable.ic_danmu_close);
     }
 
     private void changeIcon(boolean isOpen) {
@@ -207,9 +204,4 @@ public class DanmuAction extends CustomAction {
 
         popupMenu.show();
     }
-
-
-
-
-
 }

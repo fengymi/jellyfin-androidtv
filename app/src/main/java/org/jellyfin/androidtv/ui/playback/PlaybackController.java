@@ -653,8 +653,13 @@ public class PlaybackController implements PlaybackControllerNotifiable {
             }
         }, 750);
 
+        doStartItem(item, position, response);
         dataRefreshService.getValue().setLastPlayedItem(item);
         reportingHelper.getValue().reportStart(item, mbPos);
+    }
+
+    protected void doStartItem(BaseItemDto item, long position, StreamInfo response) {
+
     }
 
     public void startSpinner() {

@@ -1,8 +1,10 @@
-package org.jellyfin.androidtv.ui.playback.overlay.action;
+package org.jellyfin.androidtv.danmu.ui.action;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
@@ -11,30 +13,37 @@ import org.jellyfin.androidtv.data.compat.StreamInfo;
 import org.jellyfin.androidtv.ui.playback.PlaybackController;
 import org.jellyfin.androidtv.ui.playback.overlay.CustomPlaybackTransportControlGlue;
 import org.jellyfin.androidtv.ui.playback.overlay.VideoPlayerAdapter;
+import org.jellyfin.androidtv.ui.playback.overlay.action.CustomAction;
 import org.jellyfin.sdk.model.api.MediaSourceInfo;
 import org.jellyfin.sdk.model.api.MediaStream;
 import org.jellyfin.sdk.model.api.MediaStreamType;
 
 import java.util.List;
 
-public class PlayStatusAction extends CustomAction {
+public class PlayInfoAction extends CustomAction {
 //    private PlaybackController playbackController;
+    private Context context;
 
-    public PlayStatusAction(@NonNull Context context, @NonNull CustomPlaybackTransportControlGlue customPlaybackTransportControlGlue, PlaybackController playbackController) {
+    public PlayInfoAction(@NonNull Context context, @NonNull CustomPlaybackTransportControlGlue customPlaybackTransportControlGlue, PlaybackController playbackController) {
         super(context, customPlaybackTransportControlGlue);
-
+        this.context = context;
 //        playbackController.getCurrentMediaSource()
-        initializeWithIcon(R.drawable.ic_danmu_open);
+        initializeWithIcon(R.drawable.media_info);
     }
 
     @Override
     public void handleClickAction(@NonNull PlaybackController playbackController, @NonNull VideoPlayerAdapter videoPlayerAdapter, @NonNull Context context, @NonNull View view) {
         // {"bitrate":4196608,"container":"mov","defaultAudioStreamIndex":1,"defaultSubtitleStreamIndex":-1,"eTag":"ad9e56cf4f048aa742ea023e639bde89","formats":[],"genPtsInput":false,"id":"9d23ca269a8381e13a0af3009d1e3f69","ignoreDts":false,"ignoreIndex":false,"isInfiniteStream":false,"isRemote":false,"mediaStreams":[{"aspectRatio":"16:9","audioSpatialFormat":"NONE","averageFrameRate":25.0,"bitDepth":8,"bitRate":4031796,"codec":"h264","codecTag":"avc1","displayTitle":"1080p H264 SDR","height":1080,"index":0,"isAnamorphic":false,"isAvc":true,"isDefault":true,"isExternal":false,"isForced":false,"isHearingImpaired":false,"isInterlaced":false,"isTextSubtitleStream":false,"language":"und","level":50.0,"nalLengthSize":"4","pixelFormat":"yuv420p","profile":"High","realFrameRate":25.0,"refFrames":1,"supportsExternalStream":false,"timeBase":"1/90000","type":"VIDEO","videoRange":"UNKNOWN","videoRangeType":"UNKNOWN","width":1920},{"audioSpatialFormat":"NONE","bitRate":157588,"channelLayout":"stereo","channels":2,"codec":"aac","codecTag":"mp4a","displayTitle":"AAC - Stereo - 默认","index":1,"isAvc":false,"isDefault":true,"isExternal":false,"isForced":false,"isHearingImpaired":false,"isInterlaced":false,"isTextSubtitleStream":false,"language":"und","level":0.0,"profile":"LC","sampleRate":44100,"supportsExternalStream":false,"timeBase":"1/44100","type":"AUDIO","videoRange":"UNKNOWN","videoRangeType":"UNKNOWN"}],"name":"欢笑老弄堂 - S01E01 - 第 - 1 集","path":"/media/links/dianshiju/国产剧/欢笑老弄堂 (2024)/Season 1/欢笑老弄堂 - S01E01 - 第 - 1 集.mp4","protocol":"FILE","readAtNativeFramerate":false,"requiredHttpHeaders":{},"requiresClosing":false,"requiresLooping":false,"requiresOpening":false,"runTimeTicks":20471873020,"size":1073905393,"supportsDirectPlay":true,"supportsDirectStream":true,"supportsProbing":false,"supportsTranscoding":true,"transcodingSubProtocol":"HTTP","type":"DEFAULT","videoType":"VIDEO_FILE"}
-        MediaSourceInfo currentMediaSource = playbackController.getCurrentMediaSource();
+        LinearLayout playbackInfoView = view.getRootView().findViewById(R.id.playback_info);
+
+        if (playbackInfoView == null) {
+            return;
+        }
+        playbackInfoView.removeAllViews();
+//        MediaSourceInfo currentMediaSource = playbackController.getCurrentMediaSource();
 
         // {"Container":"mov","Context":"Streaming","DeviceProfile":{"allSupportedAudioCodecs":["aac","mp3","mp2","aac_latm","alac","ac3","eac3","dca","dts","mlp","truehd","pcm_alaw","pcm_mulaw","pcm_s16le","pcm_s20le","pcm_s24le","opus","flac","vorbis"],"allSupportedAudioCodecsWithoutFFmpegExperimental":["aac","mp3","mp2","aac_latm","alac","ac3","eac3","dts","mlp","pcm_alaw","pcm_mulaw","pcm_s16le","pcm_s20le","pcm_s24le","opus","flac","vorbis"],"downmixSupportedAudioCodecs":["aac","mp3","mp2"],"CodecProfiles":[{"ApplyConditions":[],"Codec":"h264","Conditions":[{"Condition":"EqualsAny","IsRequired":false,"Property":"VideoProfile","Value":"high|main|baseline|constrained baseline"},{"Condition":"LessThanEqual","IsRequired":false,"Property":"VideoLevel","Value":"51"}],"Type":"Video"},{"ApplyConditions":[{"Condition":"GreaterThanEqual","IsRequired":false,"Property":"Width","Value":"1200"}],"Codec":"h264","Conditions":[{"Condition":"LessThanEqual","IsRequired":false,"Property":"RefFrames","Value":"12"}],"Type":"Video"},{"ApplyConditions":[{"Condition":"GreaterThanEqual","IsRequired":false,"Property":"Width","Value":"1900"}],"Codec":"h264","Conditions":[{"Condition":"LessThanEqual","IsRequired":false,"Property":"RefFrames","Value":"4"}],"Type":"Video"},{"ApplyConditions":[],"Codec":"hevc","Conditions":[{"Condition":"NotEquals","IsRequired":false,"Property":"VideoProfile","Value":"Main 10"}],"Type":"Video"},{"ApplyConditions":[{"Condition":"Equals","IsRequired":false,"Property":"VideoProfile","Value":"Main"}],"Codec":"hevc","Conditions":[{"Condition":"LessThanEqual","IsRequired":false,"Property":"VideoLevel","Value":"156"}],"Type":"Video"},{"ApplyConditions":[],"Codec":"av1","Conditions":[{"Condition":"NotEquals","IsRequired":false,"Property":"VideoProfile","Value":"none"}],"Type":"Video"},{"ApplyConditions":[],"Conditions":[{"Condition":"LessThanEqual","IsRequired":false,"Property":"AudioChannels","Value":"2"}],"Type":"VideoAudio"}],"ContainerProfiles":[],"DirectPlayProfiles":[{"AudioCodec":"aac,mp3,mp2","Container":"m4v,mov,xvid,vob,mkv,wmv,asf,ogm,ogv,mp4,webm,ts,hls","Type":"Video","VideoCodec":"h264,hevc,vp8,vp9,mpeg,mpeg2video,av1"},{"Container":"aac,mp3,mp2,aac_latm,alac,ac3,eac3,dca,dts,mlp,truehd,pcm_alaw,pcm_mulaw,pcm_s16le,pcm_s20le,pcm_s24le,opus,flac,vorbis,mpa,wav,wma,ogg,oga,webma,ape","Type":"Audio"},{"Container":"jpg,jpeg,png,gif,webp","Type":"Photo"}],"EnableAlbumArtInDidl":false,"EnableMSMediaReceiverRegistrar":false,"EnableSingleAlbumArtLimit":false,"EnableSingleSubtitleLimit":false,"IgnoreTranscodeByteRangeRequests":false,"MaxAlbumArtHeight":0,"MaxAlbumArtWidth":0,"MaxStaticBitrate":100000000,"MaxStreamingBitrate":20000000,"MusicStreamingTranscodingBitrate":128000,"Name":"AndroidTV-ExoPlayer","ProfileType":"System","RequiresPlainFolders":false,"RequiresPlainVideoItems":false,"ResponseProfiles":[],"SubtitleProfiles":[{"Format":"srt","Method":"External"},{"Format":"subrip","Method":"External"},{"Format":"ass","Method":"Encode"},{"Format":"ssa","Method":"Encode"},{"Format":"pgs","Method":"Embed"},{"Format":"pgssub","Method":"Embed"},{"Format":"dvbsub","Method":"Embed"},{"Format":"dvdsub","Method":"Encode"},{"Format":"vtt","Method":"Embed"},{"Format":"sub","Method":"Embed"},{"Format":"idx","Method":"Embed"}],"SupportedMediaTypes":"Audio,Photo,Video","TimelineOffsetSeconds":0,"TranscodingProfiles":[{"AudioCodec":"aac,mp3,mp2","BreakOnNonKeyFrames":false,"Container":"ts","Context":"Streaming","CopyTimestamps":false,"EnableMpegtsM2TsMode":false,"EnableSubtitlesInManifest":false,"EstimateContentLength":false,"MinSegments":0,"Protocol":"hls","SegmentLength":0,"TranscodeSeekInfo":"Auto","Type":"Video","VideoCodec":"hevc,h264"},{"AudioCodec":"mp3","BreakOnNonKeyFrames":false,"Container":"mp3","Context":"Streaming","CopyTimestamps":false,"EnableMpegtsM2TsMode":false,"EnableSubtitlesInManifest":false,"EstimateContentLength":false,"MinSegments":0,"SegmentLength":0,"TranscodeSeekInfo":"Auto","Type":"Audio"}],"XmlRootAttributes":[]},"ItemId":"9d23ca26-9a83-81e1-3a0a-f3009d1e3f69","MediaSource":{"bitrate":4196608,"container":"mov","defaultAudioStreamIndex":1,"defaultSubtitleStreamIndex":-1,"eTag":"ad9e56cf4f048aa742ea023e639bde89","formats":[],"genPtsInput":false,"id":"9d23ca269a8381e13a0af3009d1e3f69","ignoreDts":false,"ignoreIndex":false,"isInfiniteStream":false,"isRemote":false,"mediaStreams":[{"aspectRatio":"16:9","audioSpatialFormat":"NONE","averageFrameRate":25.0,"bitDepth":8,"bitRate":4031796,"codec":"h264","codecTag":"avc1","displayTitle":"1080p H264 SDR","height":1080,"index":0,"isAnamorphic":false,"isAvc":true,"isDefault":true,"isExternal":false,"isForced":false,"isHearingImpaired":false,"isInterlaced":false,"isTextSubtitleStream":false,"language":"und","level":50.0,"nalLengthSize":"4","pixelFormat":"yuv420p","profile":"High","realFrameRate":25.0,"refFrames":1,"supportsExternalStream":false,"timeBase":"1/90000","type":"VIDEO","videoRange":"UNKNOWN","videoRangeType":"UNKNOWN","width":1920},{"audioSpatialFormat":"NONE","bitRate":157588,"channelLayout":"stereo","channels":2,"codec":"aac","codecTag":"mp4a","displayTitle":"AAC - Stereo - 默认","index":1,"isAvc":false,"isDefault":true,"isExternal":false,"isForced":false,"isHearingImpaired":false,"isInterlaced":false,"isTextSubtitleStream":false,"language":"und","level":0.0,"profile":"LC","sampleRate":44100,"supportsExternalStream":false,"timeBase":"1/44100","type":"AUDIO","videoRange":"UNKNOWN","videoRangeType":"UNKNOWN"}],"name":"欢笑老弄堂 - S01E01 - 第 - 1 集","path":"/media/links/dianshiju/国产剧/欢笑老弄堂 (2024)/Season 1/欢笑老弄堂 - S01E01 - 第 - 1 集.mp4","protocol":"FILE","readAtNativeFramerate":false,"requiredHttpHeaders":{},"requiresClosing":false,"requiresLooping":false,"requiresOpening":false,"runTimeTicks":20471873020,"size":1073905393,"supportsDirectPlay":true,"supportsDirectStream":true,"supportsProbing":false,"supportsTranscoding":true,"transcodingSubProtocol":"HTTP","type":"DEFAULT","videoType":"VIDEO_FILE"},"MediaUrl":"https://jellyfin.fengymi.top:9443/Videos/9d23ca26-9a83-81e1-3a0a-f3009d1e3f69/stream.mov?api_key\u003dfe7c6897aa4542d381f3cae0ffcf9170\u0026DeviceId\u003d429dc5a892cb31770873171895d3cfdb0c03b94b\u0026MediaSourceId\u003d9d23ca269a8381e13a0af3009d1e3f69\u0026Tag\u003dad9e56cf4f048aa742ea023e639bde89\u0026Static\u003dtrue","PlayMethod":"DirectPlay","PlaySessionId":"d0e9a4e271744acc8a5444c14a668718","RunTimeTicks":20471873020,"StartPositionTicks":0,"SubtitleDeliveryMethod":"Encode","TranscodeSeekInfo":"Auto"}
         StreamInfo currentStreamInfo = playbackController.getCurrentStreamInfo();
-
         List<MediaStream> mediaStreams = currentStreamInfo.getMediaSource().getMediaStreams();
         for (MediaStream mediaStream : mediaStreams) {
             MediaStreamType type = mediaStream.getType();
@@ -45,13 +54,14 @@ public class PlayStatusAction extends CustomAction {
                 String displayTitle = mediaStream.getDisplayTitle(); // 1080p H264 SDR
                 String codec = mediaStream.getCodec(); // h264
                 Float averageFrameRate = mediaStream.getAverageFrameRate(); // 25
+
+                playbackInfoView.addView(getVideoInfo(mediaStream));
             }
             if (MediaStreamType.AUDIO.equals(type)) {
                 // {"audioSpatialFormat":"NONE","bitRate":157588,"channelLayout":"stereo","channels":2,"codec":"aac","codecTag":"mp4a","displayTitle":"AAC - Stereo - 默认","index":1,"isAvc":false,"isDefault":true,"isExternal":false,"isForced":false,"isHearingImpaired":false,"isInterlaced":false,"isTextSubtitleStream":false,"language":"und","level":0,"profile":"LC","sampleRate":44100,"supportsExternalStream":false,"timeBase":"1/44100","type":"AUDIO","videoRange":"UNKNOWN","videoRangeType":"UNKNOWN"}
-
             }
         }
-
+        playbackInfoView.setVisibility(View.VISIBLE);
 
 //        GsonJsonSerializer gsonJsonSerializer = new GsonJsonSerializer();
 //        Timber.d("currentMediaSource: %s", gsonJsonSerializer.SerializeToString(currentMediaSource));
@@ -188,5 +198,41 @@ public class PlayStatusAction extends CustomAction {
 //            }
 //            originalInfo.addView((View)getStatLine(2131887648, str1));
 //        }
+    }
+
+    private LinearLayout getVideoInfo(MediaStream videoMediaStream) {
+        LinearLayout linearLayout = new LinearLayout(context);
+        linearLayout.setOrientation(LinearLayout.HORIZONTAL);
+        TextView textView = new TextView(context);
+//        textView.setTypeface(TvApp.getApplication().getDefaultFont(), 1);
+        textView.setTextSize(12.0F);
+        textView.setTextColor(Color.WHITE);
+        textView.setText(R.string.streaming_info_title);
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(-2, -2);
+        layoutParams.rightMargin = 50;
+        textView.setLayoutParams(layoutParams);
+        linearLayout.addView(textView);
+        textView = new TextView(context);
+//        textView.setTypeface(TvApp.getApplication().getDefaultFont());
+        textView.setTextSize(12.0F);
+        textView.setTextColor(-3355444);
+        textView.setAlpha(0.85F);
+
+        StringBuilder sb = new StringBuilder();
+        Integer height = videoMediaStream.getHeight();
+        Integer width = videoMediaStream.getWidth();
+        String displayTitle = videoMediaStream.getDisplayTitle(); // 1080p H264 SDR
+        String codec = videoMediaStream.getCodec(); // h264
+        Float averageFrameRate = videoMediaStream.getAverageFrameRate(); // 25
+
+        sb.append(width).append(" x ").append(height);
+        sb.append("\n")
+                .append("<br/>")
+                .append(" displayTitle: ")
+                .append(displayTitle);
+
+        textView.setText(sb.toString());
+        linearLayout.addView(textView);
+        return linearLayout;
     }
 }

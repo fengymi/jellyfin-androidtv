@@ -545,4 +545,8 @@
     <string name="playback_info_title">播放信息</string>
     <string name="streaming_info_title">流媒体信息</string>
     <string name="original_info_title">原始媒体信息</string>
+    <string name="binge_watching_opening">片头</string>
+    <string name="binge_watching_ending">片尾</string>
+    <string name="auto_skip_tip">即将播放  %s, %s秒后自动进入, 按返回键取消 …</string>
+    <string name="quick_skip">立即跳转</string>
 </resources>
