@@ -429,9 +429,6 @@
     <string name="pref_refresh_rate_scale_on_tv">Skala na telewizorze</string>
     <string name="pref_crash_report_logs">Dołącz logi</string>
     <string name="lbl_subtitle_delay">Opóźnienie napisów</string>
-    <string name="lbl_subtitle_fg">Kolor napisów</string>
-    <string name="lbl_subtitle_stroke">Rozmiar napisów</string>
-    <string name="lbl_subtitle_position">Odległość napisów od dołu</string>
     <string name="image_size_smallest">Najmniejszy</string>
     <string name="color_white">Biały</string>
     <string name="color_black">Czarny</string>
@@ -569,4 +566,12 @@
     <string name="past_week">Ostatni tydzień</string>
     <string name="scheduled_in_next_24_hours">Zaplanowane w ciągu najbliższych 24 godzin</string>
     <string name="past_24_hours">Ostatnie 24 godziny</string>
+    <string name="lbl_subtitle_text_color">Kolor tekstu napisów</string>
+    <string name="lbl_subtitle_background_color">Kolor tła napisów</string>
+    <string name="lbl_subtitle_text_stroke_color">Kolor obrysu napisów</string>
+    <string name="pref_subtitles_size_very_small">Bardzo małe</string>
+    <string name="pref_subtitles_size_small">Małe</string>
+    <string name="pref_subtitles_size_normal">Normalne</string>
+    <string name="pref_subtitles_size_large">Duże</string>
+    <string name="pref_subtitles_size_very_large">Bardzo duże</string>
 </resources>

@@ -7,15 +7,14 @@ import android.content.Context;
 import android.graphics.Color;
 import android.media.AudioManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
@@ -26,7 +25,6 @@ import android.widget.TextView;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
@@ -49,7 +47,6 @@ import org.jellyfin.androidtv.data.repository.CustomMessageRepository;
 import org.jellyfin.androidtv.data.service.BackgroundService;
 import org.jellyfin.androidtv.databinding.OverlayTvGuideBinding;
 import org.jellyfin.androidtv.databinding.VlcPlayerInterfaceBinding;
-import org.jellyfin.androidtv.preference.UserPreferences;
 import org.jellyfin.androidtv.ui.GuideChannelHeader;
 import org.jellyfin.androidtv.ui.GuidePagingButton;
 import org.jellyfin.androidtv.ui.HorizontalScrollViewListener;
@@ -71,7 +68,6 @@ import org.jellyfin.androidtv.ui.presentation.CardPresenter;
 import org.jellyfin.androidtv.ui.presentation.ChannelCardPresenter;
 import org.jellyfin.androidtv.ui.presentation.MutableObjectAdapter;
 import org.jellyfin.androidtv.ui.presentation.PositionableListRowPresenter;
-import org.jellyfin.androidtv.ui.shared.PaddedLineBackgroundSpan;
 import org.jellyfin.androidtv.util.CoroutineUtils;
 import org.jellyfin.androidtv.util.DateTimeExtensionsKt;
 import org.jellyfin.androidtv.util.ImageHelper;
@@ -81,12 +77,9 @@ import org.jellyfin.androidtv.util.TimeUtils;
 import org.jellyfin.androidtv.util.Utils;
 import org.jellyfin.androidtv.util.apiclient.EmptyLifecycleAwareResponse;
 import org.jellyfin.androidtv.util.sdk.BaseItemExtensionsKt;
-import org.jellyfin.apiclient.model.mediainfo.SubtitleTrackEvent;
-import org.jellyfin.apiclient.model.mediainfo.SubtitleTrackInfo;
 import org.jellyfin.sdk.model.api.BaseItemDto;
 import org.jellyfin.sdk.model.api.BaseItemKind;
 import org.jellyfin.sdk.model.api.ChapterInfo;
-import org.koin.java.KoinJavaComponent;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -138,18 +131,6 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
     private LeanbackOverlayFragment leanbackOverlayFragment;
     private FrameLayout playbackViewExtraSetting;
     private AutoSkipTipLinearLayout autoSkipTipLinearLayout;
-
-    // Subtitle fields
-    private static final int SUBTITLE_PADDING = 20;
-    private static final long SUBTITLE_RENDER_INTERVAL_MS = 50;
-    private SubtitleTrackInfo subtitleTrackInfo;
-    private int currentSubtitleIndex = 0;
-    private long lastSubtitlePositionMs = 0;
-    private final UserPreferences userPreferences = KoinJavaComponent.<UserPreferences>get(UserPreferences.class);
-    private final int subtitlesSize = userPreferences.get(UserPreferences.Companion.getSubtitlesSize());
-    private final boolean subtitlesBackgroundEnabled = userPreferences.get(UserPreferences.Companion.getSubtitlesBackgroundEnabled());
-    private final int subtitlesPosition = userPreferences.get(UserPreferences.Companion.getSubtitlePosition());
-    private final int subtitlesStrokeWidth = userPreferences.get(UserPreferences.Companion.getSubtitleStrokeSize());
 
     private final Lazy<org.jellyfin.sdk.api.client.ApiClient> api = inject(org.jellyfin.sdk.api.client.ApiClient.class);
     private final Lazy<MediaManager> mediaManager = inject(MediaManager.class);
@@ -273,26 +254,6 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
         if (mItemsToPlay == null || mItemsToPlay.size() == 0) return;
 
         prepareOverlayFragment();
-
-        //manual subtitles
-        // This configuration is required for the PaddedLineBackgroundSpan to work
-        binding.subtitlesText.setShadowLayer(SUBTITLE_PADDING, 0, 0, Color.TRANSPARENT);
-        binding.subtitlesText.setPadding(SUBTITLE_PADDING, 0, SUBTITLE_PADDING, 0);
-
-        // Subtitles font size configuration
-        binding.subtitlesText.setTextSize(subtitlesSize);
-
-        // Subtitles font position (margin bottom)
-        if (subtitlesPosition > 0) {
-            ViewGroup.MarginLayoutParams currentLayoutParams = (ViewGroup.MarginLayoutParams) binding.subtitlesText.getLayoutParams();
-            currentLayoutParams.bottomMargin = (8 + Utils.convertDpToPixel(requireContext(), subtitlesPosition));
-            binding.subtitlesText.setLayoutParams(currentLayoutParams);
-        }
-
-        // Subtitles stroke width
-        if (subtitlesStrokeWidth > 0 && !subtitlesBackgroundEnabled) {
-            binding.subtitlesText.setStrokeWidth(subtitlesStrokeWidth);
-        }
 
         //pre-load animations
         fadeOut = AnimationUtils.loadAnimation(requireContext(), androidx.leanback.R.anim.abc_fade_out);
@@ -624,7 +585,8 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
                         // up or down should close panel
                         if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN || keyCode == KeyEvent.KEYCODE_DPAD_UP) {
                             hidePopupPanel();
-                            if (playbackControllerContainer.getValue().getPlaybackController().isLiveTv()) hide(); //also close this if live tv
+                            if (playbackControllerContainer.getValue().getPlaybackController().isLiveTv())
+                                hide(); //also close this if live tv
                             return true;
                         } else {
                             return false;
@@ -722,8 +684,9 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
     public void onResume() {
         super.onResume();
 
-        // Close player when resuming without a valid playback contoller
-        if (!playbackControllerContainer.getValue().getPlaybackController().hasFragment()) {
+        // Close player when resuming without a valid playback controller
+        PlaybackController playbackController = playbackControllerContainer.getValue().getPlaybackController();
+        if (playbackController == null || !playbackController.hasFragment()) {
             if (navigationRepository.getValue().getCanGoBack()) {
                 navigationRepository.getValue().goBack();
             } else {
@@ -932,8 +895,8 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
                 // set focus parameters if we are not on first row
                 // this makes focus movements more predictable for the grid view
                 if (prevRow != null) {
-                    TvManager.setFocusParms(row, prevRow, true);
-                    TvManager.setFocusParms(prevRow, row, false);
+                    TvManager.setFocusParams(row, prevRow, true);
+                    TvManager.setFocusParams(prevRow, row, false);
                 }
                 prevRow = row;
 
@@ -1362,137 +1325,6 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
         navigationRepository.getValue().navigate(Destinations.INSTANCE.nextUp(id), true);
     }
 
-    public void addManualSubtitles(@Nullable SubtitleTrackInfo info) {
-        subtitleTrackInfo = info;
-        currentSubtitleIndex = -1;
-        lastSubtitlePositionMs = 0;
-        clearSubtitles();
-    }
-
-    public void showSubLoadingMsg(final boolean show) {
-        if (show) {
-            renderSubtitles(requireContext().getString(R.string.msg_subtitles_loading));
-        } else {
-            clearSubtitles();
-        }
-    }
-
-    public void updateSubtitles(long positionMs) {
-        int iterCount = 1;
-        final long positionTicks = positionMs * 10000;
-        final long lastPositionTicks = lastSubtitlePositionMs * 10000;
-
-        if (subtitleTrackInfo == null
-                || subtitleTrackInfo.getTrackEvents() == null
-                || subtitleTrackInfo.getTrackEvents().size() < 1
-                || currentSubtitleIndex >= subtitleTrackInfo.getTrackEvents().size()) {
-            return;
-        }
-
-        if (positionTicks < subtitleTrackInfo.getTrackEvents().get(0).getStartPositionTicks())
-            return;
-
-        // Skip rendering if the interval ms have not passed since last render
-        if (lastSubtitlePositionMs > 0
-                && Math.abs(lastSubtitlePositionMs - positionMs) < SUBTITLE_RENDER_INTERVAL_MS) {
-            return;
-        }
-
-        // If the user has skipped back, reset the subtitle index
-        if (lastSubtitlePositionMs > positionMs) {
-            currentSubtitleIndex = -1;
-            clearSubtitles();
-        }
-
-        if (currentSubtitleIndex == -1)
-            Timber.d("subtitle track events size %s", subtitleTrackInfo.getTrackEvents().size());
-
-        // Find the next subtitle event that should be rendered
-        for (int tmpSubtitleIndex = currentSubtitleIndex == -1 ? 0 : currentSubtitleIndex; tmpSubtitleIndex < subtitleTrackInfo.getTrackEvents().size(); tmpSubtitleIndex++) {
-            SubtitleTrackEvent trackEvent = subtitleTrackInfo.getTrackEvents().get(tmpSubtitleIndex);
-
-            if (positionTicks >= trackEvent.getStartPositionTicks()
-                    && positionTicks < trackEvent.getEndPositionTicks()) {
-                // This subtitle event should be displayed now
-                // use lastPositionTicks to ensure it is only rendered once
-
-                if (lastPositionTicks < trackEvent.getStartPositionTicks() || lastPositionTicks >= trackEvent.getEndPositionTicks()) {
-                    Timber.d("rendering subtitle event: %s (pos %s start %s end %s)", tmpSubtitleIndex, positionMs, trackEvent.getStartPositionTicks() / 10000, trackEvent.getEndPositionTicks() / 10000);
-                    renderSubtitles(trackEvent.getText());
-                }
-
-                currentSubtitleIndex = tmpSubtitleIndex;
-                lastSubtitlePositionMs = positionMs;
-                // rendering should happen on the 2nd iteration
-                if (iterCount > 2)
-                    Timber.d("subtitles handled in %s iterations", iterCount);
-                return;
-            } else if (tmpSubtitleIndex < subtitleTrackInfo.getTrackEvents().size() - 1) {
-                SubtitleTrackEvent nextTrackEvent = subtitleTrackInfo.getTrackEvents().get(tmpSubtitleIndex + 1);
-
-                if (positionTicks >= trackEvent.getEndPositionTicks() && positionTicks < nextTrackEvent.getStartPositionTicks()) {
-                    // clear the subtitles if between events
-                    // use lastPositionTicks to ensure it is only cleared once
-
-                    if (currentSubtitleIndex > -1 && !(lastPositionTicks >= trackEvent.getEndPositionTicks() && lastPositionTicks < nextTrackEvent.getStartPositionTicks())) {
-                        Timber.d("clearing subtitle event: %s (pos %s - event end %s)", tmpSubtitleIndex, positionMs, trackEvent.getEndPositionTicks() / 10000);
-                        clearSubtitles();
-                    }
-
-                    // set currentSubtitleIndex in case it was -1
-                    currentSubtitleIndex = tmpSubtitleIndex;
-                    lastSubtitlePositionMs = positionMs;
-                    if (iterCount > 1)
-                        Timber.d("subtitles handled in %s iterations", iterCount);
-                    return;
-                }
-            }
-            iterCount++;
-        }
-        // handles clearing the last event
-        if (iterCount > 1)
-            Timber.d("subtitles handled in %s iterations", iterCount);
-        clearSubtitles();
-    }
-
-    private void clearSubtitles() {
-        requireActivity().runOnUiThread(() -> {
-            binding.subtitlesText.setVisibility(View.INVISIBLE);
-            binding.subtitlesText.setText(null);
-        });
-    }
-
-    private void renderSubtitles(@Nullable final String text) {
-        if (text == null || text.length() == 0) {
-            clearSubtitles();
-            return;
-        }
-        requireActivity().runOnUiThread(() -> {
-            final String htmlText = text
-                    // Encode whitespace as html entities
-                    .replaceAll("\\r\\n", "<br>")
-                    .replaceAll("\\n", "<br>")
-                    .replaceAll("\\\\h", "&ensp;")
-                    // Remove SSA tags
-                    .replaceAll("\\{\\\\.*?\\}", "");
-
-            final SpannableString span = new SpannableString(TextUtilsKt.toHtmlSpanned(htmlText));
-            if (subtitlesBackgroundEnabled) {
-                // Disable the text outlining when the background is enabled
-                binding.subtitlesText.setStrokeWidth(0.0f);
-
-                // get the alignment gravity of the TextView
-                // extract the absolute horizontal gravity so the span can draw its background aligned
-                int gravity = binding.subtitlesText.getGravity();
-                int horizontalGravity = Gravity.getAbsoluteGravity(gravity, binding.subtitlesText.getLayoutDirection()) & Gravity.HORIZONTAL_GRAVITY_MASK;
-                span.setSpan(new PaddedLineBackgroundSpan(ContextCompat.getColor(requireContext(), R.color.black_opaque), SUBTITLE_PADDING, horizontalGravity), 0, span.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            }
-
-            binding.subtitlesText.setText(span);
-            binding.subtitlesText.setVisibility(View.VISIBLE);
-        });
-    }
-
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -1500,5 +1332,12 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
         // Show system bars
         WindowCompat.setDecorFitsSystemWindows(requireActivity().getWindow(), true);
         WindowCompat.getInsetsController(requireActivity().getWindow(), requireActivity().getWindow().getDecorView()).show(WindowInsetsCompat.Type.systemBars());
+
+        // Reset display mode
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            WindowManager.LayoutParams params = getActivity().getWindow().getAttributes();
+            params.preferredDisplayModeId = 0;
+            getActivity().getWindow().setAttributes(params);
+        }
     }
 }

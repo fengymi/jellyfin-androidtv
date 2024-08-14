@@ -17,7 +17,7 @@
     <string name="lbl_mark_unplayed">Đánh dấu chưa phát</string>
     <string name="lbl_play_first_unwatched">Phát chưa xem đầu tiên</string>
     <string name="lbl_search_hint">Tìm kiếm văn bản (chọn cho bàn phím)</string>
-    <string name="lbl_tv_queuing">Xếp hàng đợi tất cả các tập tiếp theo</string>
+    <string name="lbl_tv_queuing">Tự động phát tập tiếp theo</string>
     <string name="lbl_empty">Trống</string>
     <string name="lbl_no_items">Không mục nào</string>
     <string name="msg_cannot_play">Mục này không thể phát được</string>
@@ -437,20 +437,17 @@
     <string name="lbl_quality_profile">Hồ sơ chất lượng</string>
     <string name="desc_audio_night_mode">Tự động điều chỉnh âm lượng âm thanh</string>
     <string name="pref_audio_night_mode">Chế độ âm thanh ban đêm (thử nghiệm)</string>
-    <string name="lbl_subtitle_fg">Màu văn bản phụ đề</string>
     <string name="color_white">Trắng</string>
     <string name="color_black">Đen</string>
     <string name="color_darkgrey">Xám đen</string>
     <string name="app_notification_beta">Ứng dụng đã cập nhật lên %1$s
 \nCảm ơn bạn tham gia chương trình Jellyfin beta.</string>
-    <string name="lbl_subtitle_stroke">Kích thước nét phụ đề</string>
     <string name="color_red">Đỏ</string>
     <string name="color_green">Xanh lá</string>
     <string name="color_blue">Xanh lam</string>
     <string name="color_yellow">Vàng</string>
     <string name="color_pink">Hồng</string>
     <string name="color_cyan">Lục lam</string>
-    <string name="lbl_subtitle_position">Độ lệch phụ đề từ dưới lên</string>
     <string name="item_deletion_failed">Không thể xóa %1$s</string>
     <string name="pref_enable_media_management">Bật quản lý phương tiện</string>
     <string name="pref_enable_media_management_description">Hiển thị tùy chọn để quản lý phương tiện trong khi duyệt</string>
@@ -511,4 +508,18 @@
     <plurals name="songs">
         <item quantity="other">%1$s bài hát</item>
     </plurals>
+    <string name="past_24_hours">24 giờ qua</string>
+    <string name="lbl_subtitle_background_color">Màu nền phụ đề</string>
+    <string name="lbl_subtitle_text_stroke_color">Màu nét phụ đề</string>
+    <string name="pref_subtitles_size_very_small">Rất nhỏ</string>
+    <string name="pref_subtitles_size_normal">Bình thường</string>
+    <string name="pref_subtitles_size_large">Lớn</string>
+    <string name="pref_subtitles_size_very_large">Rất lớn</string>
+    <string name="pref_external_player">Sử dụng trình phát bên ngoài</string>
+    <string name="lbl_subtitle_text_color">Màu chữ phụ đề</string>
+    <string name="scheduled_in_next_24_hours">Dự kiến trong 24 giờ tới</string>
+    <string name="pref_subtitles_size_small">Nhỏ</string>
+    <string name="past_week">Tuần qua</string>
+    <string name="continue_listening">Tiếp tục nghe</string>
+    <string name="current_queue">Hàng đợi hiện tại</string>
 </resources>

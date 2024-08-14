@@ -444,11 +444,8 @@
     <string name="lbl_quality_profile">质量配置</string>
     <string name="desc_audio_night_mode">自动调平音量</string>
     <string name="pref_audio_night_mode">音频夜间模式（实验性）</string>
-    <string name="lbl_subtitle_fg">字幕文字颜色</string>
     <string name="app_notification_beta">应用已更新至 %1$s
 \n感谢您参与 Jellyfin 测试计划。</string>
-    <string name="lbl_subtitle_stroke">字幕大小</string>
-    <string name="lbl_subtitle_position">字幕距底部的偏移量</string>
     <string name="color_white">白色</string>
     <string name="color_black">黑色</string>
     <string name="color_darkgrey">深灰色</string>
@@ -549,4 +546,13 @@
     <string name="binge_watching_ending">片尾</string>
     <string name="auto_skip_tip">即将播放  %s, %s秒后自动进入, 按返回键取消 …</string>
     <string name="quick_skip">立即跳转</string>
+</resources>
+    <string name="lbl_subtitle_text_color">字幕文字颜色</string>
+    <string name="lbl_subtitle_background_color">字幕背景颜色</string>
+    <string name="lbl_subtitle_text_stroke_color">字幕描边颜色</string>
+    <string name="pref_subtitles_size_very_small">很小</string>
+    <string name="pref_subtitles_size_small">小</string>
+    <string name="pref_subtitles_size_normal">正常</string>
+    <string name="pref_subtitles_size_large">大</string>
+    <string name="pref_subtitles_size_very_large">很大</string>
 </resources>
