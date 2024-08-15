@@ -206,7 +206,7 @@ public class DanmuSurfaceController extends DanmuController {
                 fpsPaint.setColor(Color.GREEN);
             }
 
-            showFpsText = "fps: " + fpsCount * 1000L / time;
+            showFpsText = "fps: " + fpsCount * 1000L / time + "/" + fps;
             fpsPreTime = currentTime;
             fpsCount = 0;
         } else {
@@ -241,7 +241,7 @@ public class DanmuSurfaceController extends DanmuController {
             canvas.drawText(danma.getValue(), danma.getX(), danma.getY(), paint);
             danma.update(danmuConfig.getSpeed());
 
-            if (!needChangeColor) {
+            if (needChangeColor) {
                 paint.setColor(defaultColor);
             }
             showNum ++;

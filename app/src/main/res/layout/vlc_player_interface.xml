@@ -36,14 +36,14 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:use_controller="false" />
-<!--        <com.tv.fengymi.danmu.view.DanmuConfigView-->
-<!--            android:id="@+id/danmuConfigView"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:maxHeight="90dp"-->
-<!--            android:maxWidth="160dp"-->
-<!--            android:layout_gravity="center"-->
-<!--            app:use_controller="false" />-->
+        <!--        <com.tv.fengymi.danmu.view.DanmuConfigView-->
+        <!--            android:id="@+id/danmuConfigView"-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:maxHeight="90dp"-->
+        <!--            android:maxWidth="160dp"-->
+        <!--            android:layout_gravity="center"-->
+        <!--            app:use_controller="false" />-->
 
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/leanback_fragment"
@@ -52,8 +52,15 @@
             android:layout_height="match_parent"
             android:layout_gravity="center" />
 
-    </FrameLayout>
+        <include
+            android:id="@+id/video_player_info"
+            layout="@layout/stats_for_nerds"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center|end"
+            android:visibility="gone" />
 
+    </FrameLayout>
 
 
     <FrameLayout
@@ -62,10 +69,7 @@
         android:layout_height="match_parent"
         android:focusable="true"
         android:focusableInTouchMode="true"
-        android:visibility="gone"
-        >
-
-        <!--        <include android:layout_gravity="center|end" android:id="@+id/video_player_info" android:visibility="gone" android:layout_width="wrap_content" android:layout_height="wrap_content" layout="@layout/stats_for_nerds" />-->
+        android:visibility="gone">
 
         <include
             layout="@layout/playback_view_extra_setting"
@@ -156,8 +160,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:focusable="true"
-        android:focusableInTouchMode="true"
-        >
+        android:focusableInTouchMode="true">
 
         <include
             layout="@layout/playback_auto_skip"

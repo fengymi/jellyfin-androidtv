@@ -163,6 +163,11 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
 
         mMetrics = new DisplayMetrics();
         requireActivity().getWindowManager().getDefaultDisplay().getMetrics(mMetrics);
+        try {
+            Timber.d("当前屏幕信息x mMetrics=%s", mMetrics);
+        } catch (Exception e) {
+            Timber.d(e, "获取当前屏幕信息异常");
+        }
 
         mRowsFragment = new RowsSupportFragment();
         getChildFragmentManager().beginTransaction().replace(R.id.rowsFragment, mRowsFragment).commit();

@@ -160,10 +160,16 @@ public class AutoSkipTipLinearLayout extends LinearLayout implements View.OnKeyL
             return true;
         }
 
+        if (!mAutoSkipVisible) {
+            return false;
+        }
+
         if (event.getAction() == KeyEvent.ACTION_UP && (keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_BUTTON_B || keyCode == KeyEvent.KEYCODE_ESCAPE)) {
             hasCancel = true;
             hideOverlay();
-            canceler.run();
+            if (canceler != null) {
+                canceler.run();
+            }
             return true;
         }
         return false;
