@@ -107,6 +107,7 @@ dependencies {
 		}
 	}
 	implementation(projects.danmu)
+//	implementation(libs.danmaku.render.engine)
 
 	// Kotlin
 	implementation(libs.kotlinx.coroutines)

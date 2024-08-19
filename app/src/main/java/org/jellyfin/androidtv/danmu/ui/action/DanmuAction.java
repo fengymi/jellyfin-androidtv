@@ -170,6 +170,14 @@ public class DanmuAction extends CustomAction {
             return true;
         });
 
+        MenuItem showItem = menu.add(5, 8, order ++, "FPS");
+        showItem.setCheckable(true);
+        showItem.setChecked(danmuSetting.showFps());
+        showItem.setOnMenuItemClickListener(item -> {
+            danmuSetting.setShowFPS(!item.isChecked());
+            return true;
+        });
+
         // 弹幕来源
         if (danmuSetting.isOpen()) {
             String sourceTitle = "弹幕来源支持数: " + (danmuSetting.getDanmuApiList() == null ? 0 : danmuSetting.getDanmuApiList().size());

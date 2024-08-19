@@ -77,6 +77,8 @@ public class SharedPreferencesDanmuConfig implements DanmuConfigGetter, DanmuCon
      */
     private boolean debug;
 
+    private boolean showFPS;
+
     public SharedPreferencesDanmuConfig(Context context) {
         this.context = context;
         this.gsonJsonSerializer = new GsonJsonSerializer();
@@ -143,6 +145,15 @@ public class SharedPreferencesDanmuConfig implements DanmuConfigGetter, DanmuCon
     public void setFontSize(int fontSize) {
         this.fontSize = fontSize;
         saveOneSetting(FONT_SIZE_KEY, fontSize);
+    }
+
+    public void setShowFPS(boolean showFPS) {
+        this.showFPS = showFPS;
+    }
+
+    @Override
+    public boolean showFps() {
+        return showFPS;
     }
 
     @Override

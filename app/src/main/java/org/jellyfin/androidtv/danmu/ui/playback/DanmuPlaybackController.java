@@ -184,14 +184,14 @@ public class DanmuPlaybackController extends PlaybackController implements Danmu
                         autoSkipTip.showOverplay(
                                 nextItem.getName(),
                                 wsTimestamp - currentPosition,
-                                this::next,
+                                this::autoNext,
                                 () -> cancelSkipEnd = true);
                     }
                 } else {
                     if (wsTimestamp < currentPosition) {
                         endSkipped = true;
                         if (weTime == 0 || weTime * 1000L > maxPosition) {
-                            next();
+                            autoNext();
                         } else {
                             seek(weTime * 1000L);
                         }
@@ -206,6 +206,10 @@ public class DanmuPlaybackController extends PlaybackController implements Danmu
         if (danmuControllerHandler != null) {
             danmuControllerHandler.currentPosition(currentPosition);
         }
+    }
+
+    protected void autoNext() {
+        seek(getDuration() - 1);
     }
 
     public void setAutoSkipTip(AutoSkipTipLinearLayout autoSkipTip) {

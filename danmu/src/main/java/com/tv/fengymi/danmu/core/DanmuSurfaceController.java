@@ -71,10 +71,14 @@ public class DanmuSurfaceController extends DanmuController {
                     if (state == PlayStateEnum.PAUSE || !danmuConfig.isOpen()) {
                         sateWait(!danmuConfig.isOpen());
                     }
+                    long startTime = System.currentTimeMillis();
                     if (state == PlayStateEnum.RUNNING) {
                         drawDanmu();
                     }
-                    Thread.sleep(timeGap);
+                    long needSleep = timeGap - (System.currentTimeMillis() - startTime);
+                    if (needSleep > 5) {
+                        Thread.sleep(needSleep);
+                    }
                 } catch (Exception e) {
                     Timber.e(e, "执行弹幕渲染异常");
                 }
@@ -115,6 +119,7 @@ public class DanmuSurfaceController extends DanmuController {
         this.state = PlayStateEnum.RUNNING;
         if (drawThread == null || !drawThread.isAlive()) {
             drawThread = new Thread(painter);
+            drawThread.setName("THREAD-danmu-drawer");
             drawThread.start();
         }
         sateWaitRelease();
@@ -186,11 +191,15 @@ public class DanmuSurfaceController extends DanmuController {
 
     private void renderDanmaku(Canvas canvas) {
         // 清空屏幕
+        long startTime = System.currentTimeMillis();
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         // 绘制弹幕
         this.showDanMu(canvas);
-        if (danmuConfig.isDebug()) {
+        if (danmuConfig.showFps()) {
             this.showFps(canvas);
+        }
+        if (danmuConfig.isDebug()) {
+            Timber.d("完成一次弹幕渲染: 耗时 %s", (System.currentTimeMillis() - startTime));
         }
     }
 
@@ -222,7 +231,7 @@ public class DanmuSurfaceController extends DanmuController {
             return;
         }
 
-        int total = needShowDanmus.size(), showNum = 0, ignoreNum = 0;
+        int showNum = 0, ignoreNum = 0;
         // 绘制文本
         for (Danmu danma : needShowDanmus) {
             // 不展示，只进行数据更新
@@ -248,7 +257,7 @@ public class DanmuSurfaceController extends DanmuController {
         }
 
         if (danmuConfig.isDebug()) {
-            Timber.d("弹幕显示数, total=%s, showNum=%s, ignoreNum=%s", total, showNum, ignoreNum);
+            Timber.d("弹幕显示数, total=%s, showNum=%s, ignoreNum=%s", needShowDanmus.size(), showNum, ignoreNum);
         }
     }
 

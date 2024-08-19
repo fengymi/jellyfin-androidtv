@@ -137,6 +137,7 @@ public abstract class DanmuContainer implements DanmuConfigChangeHandler {
         // 启动循环计算
         if (calculatorThread == null || !calculatorThread.isAlive()) {
             calculatorThread = new Thread(calculator);
+            calculatorThread.setName("THREAD-danmu-calculator");
             calculatorThread.start();
         }
     }

@@ -18,7 +18,7 @@ public interface DanmuConfigGetter {
      * @return fps值
      */
     default int getFps() {
-        return 60;
+        return 40;
     }
 
     default long getTimeGap() {
@@ -38,4 +38,8 @@ public interface DanmuConfigGetter {
     int getFontSize();
 
     boolean isDebug();
+
+    default boolean showFps() {
+        return false;
+    }
 }
