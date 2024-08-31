@@ -141,5 +141,10 @@
             android:theme="@style/Theme.Jellyfin.Preferences" />
 
         <activity android:name=".ui.playback.ExternalPlayerActivity" />
+        <activity
+            android:name=".customer.DanmuGSYPlayerActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
+            android:screenOrientation="landscape"
+            android:windowSoftInputMode="adjustNothing"/>
     </application>
 </manifest>

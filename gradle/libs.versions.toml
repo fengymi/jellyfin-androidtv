@@ -25,6 +25,7 @@ androidx-tvprovider = "1.1.0-alpha01"
 androidx-window = "1.3.0"
 androidx-work = "2.9.1"
 coil = "2.7.0"
+danmakuRenderEngine = "0.9.25"
 detekt = "1.23.6"
 jellyfin-androidx-media = "1.3.1+2"
 jellyfin-apiclient = "v0.7.10"
@@ -39,6 +40,8 @@ markwon = "4.6.2"
 mockk = "1.13.12"
 slf4j-timber = "0.0.4"
 timber = "5.0.1"
+# gsy player version
+gsy-player = "v9.0.0-release-jitpack"
 
 [plugins]
 aboutlibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutlibraries" }
@@ -94,6 +97,22 @@ koin-androidx-workmanager = { module = "io.insert-koin:koin-androidx-workmanager
 androidx-media3-exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = "androidx-media3" }
 androidx-media3-exoplayer-hls = { module = "androidx.media3:media3-exoplayer-hls", version.ref = "androidx-media3" }
 jellyfin-androidx-media3-ffmpeg-decoder = { group = "org.jellyfin.media3", name = "media3-ffmpeg-decoder", version.ref = "jellyfin-androidx-media" }
+
+# GSY-jitpack-player
+gsy-player-java = { module = "com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-java", version.ref = "gsy-player" }
+gsy-player-exo2 = { module = "com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer-exo2", version.ref = "gsy-player" }
+gsy-player-ali = { module = "com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer-aliplay", version.ref = "gsy-player" }
+gsy-player-so-arm64 = { module = "com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-arm64", version.ref = "gsy-player" }
+gsy-player-so-armv7a = { module = "com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-armv7a", version.ref = "gsy-player" }
+gsy-player-so-armv5 = { module = "com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-armv5", version.ref = "gsy-player" }
+gsy-player-so-x86 = { module = "com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-x86", version.ref = "gsy-player" }
+gsy-player-so-x64 = { module = "com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-x64", version.ref = "gsy-player" }
+gsy-player-so-ext = { module = "com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-ex_so", version.ref = "gsy-player" }
+# bilibi danmaku
+danmaku-render-engine = { module = "com.github.CarGuo.DanmakuFlameMaster:DanmakuFlameMaster", version.ref = "danmakuRenderEngine" }
+danmaku-render-engine-ndk-armv7a = { module = "com.github.CarGuo.DanmakuFlameMaster:ndkbitmap-armv7a", version.ref = "danmakuRenderEngine" }
+danmaku-render-engine-ndk-x86 = { module = "com.github.CarGuo.DanmakuFlameMaster:ndkbitmap-x86", version.ref = "danmakuRenderEngine" }
+danmaku-render-engine-ndk-armv5 = { module = "com.github.CarGuo.DanmakuFlameMaster:ndkbitmap-armv5", version.ref = "danmakuRenderEngine" }
 
 # Markwon
 markwon-core = { module = "io.noties.markwon:core", version.ref = "markwon" }

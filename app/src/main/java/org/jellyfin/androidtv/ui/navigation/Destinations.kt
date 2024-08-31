@@ -1,9 +1,11 @@
 package org.jellyfin.androidtv.ui.navigation
 
 import androidx.core.os.bundleOf
+import com.shuyu.gsyvideoplayer.video.base.GSYVideoPlayer
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jellyfin.androidtv.constant.Extras
+import org.jellyfin.androidtv.customer.DanmuGSYPlayerActivity
 import org.jellyfin.androidtv.ui.browsing.BrowseGridFragment
 import org.jellyfin.androidtv.ui.browsing.BrowseRecordingsFragment
 import org.jellyfin.androidtv.ui.browsing.BrowseScheduleFragment
@@ -25,6 +27,7 @@ import org.jellyfin.androidtv.ui.picture.PictureViewerFragment
 import org.jellyfin.androidtv.ui.playback.AudioNowPlayingFragment
 import org.jellyfin.androidtv.ui.playback.CustomPlaybackOverlayFragment
 import org.jellyfin.androidtv.ui.playback.ExternalPlayerActivity
+import org.jellyfin.androidtv.customer.GSYPlayerActivity
 import org.jellyfin.androidtv.ui.playback.nextup.NextUpFragment
 import org.jellyfin.androidtv.ui.playback.rewrite.PlaybackRewriteFragment
 import org.jellyfin.androidtv.ui.preference.PreferencesActivity
@@ -156,6 +159,10 @@ object Destinations {
 		)
 
 	fun externalPlayer(position: Int?) = activityDestination<ExternalPlayerActivity>(
+		"Position" to (position ?: 0)
+	)
+
+	fun gsyPlayer(position: Int?) = activityDestination<DanmuGSYPlayerActivity>(
 		"Position" to (position ?: 0)
 	)
 

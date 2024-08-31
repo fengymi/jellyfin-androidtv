@@ -38,6 +38,17 @@
             android:layout_height="match_parent"
             android:layout_gravity="center" />
 
+        <org.jellyfin.androidtv.customer.gsy.DanmakuJellyfinGSYVideoPlayer
+            android:id="@+id/video_player"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <master.flame.danmaku.ui.widget.DanmakuView
+            android:id="@+id/danmuView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:use_controller="false" />
+
     </FrameLayout>
 
     <FrameLayout

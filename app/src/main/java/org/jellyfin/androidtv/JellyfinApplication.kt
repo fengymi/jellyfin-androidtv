@@ -1,7 +1,9 @@
 package org.jellyfin.androidtv
 
 import android.app.Application
+import android.app.UiModeManager
 import android.content.Context
+import android.content.res.Configuration
 import androidx.work.BackoffPolicy
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
@@ -11,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.acra.ACRA
+import org.jellyfin.androidtv.customer.GSYPlayerActivity
 import org.jellyfin.androidtv.data.eventhandling.SocketHandler
 import org.jellyfin.androidtv.data.repository.NotificationsRepository
 import org.jellyfin.androidtv.integration.LeanbackChannelWorker
@@ -22,6 +25,9 @@ import java.util.concurrent.TimeUnit
 class JellyfinApplication : Application() {
 	override fun onCreate() {
 		super.onCreate()
+
+//		val uiModeManager = applicationContext.getSystemService(UI_MODE_SERVICE) as UiModeManager
+//		isTv = uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
 
 		// Don't run in ACRA service
 		if (ACRA.isACRASenderServiceProcess()) return

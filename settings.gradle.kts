@@ -22,6 +22,7 @@ pluginManagement {
 
 dependencyResolutionManagement {
 	repositories {
+		mavenLocal()
 		mavenCentral()
 		google()
 
@@ -43,7 +44,14 @@ dependencyResolutionManagement {
 			content {
 				// Only allow legacy apiclient
 				includeVersionByRegex("com.github.jellyfin.jellyfin-sdk-kotlin", ".*", "v0.7.10")
+				includeVersionByRegex("com.github.CarGuo.*", ".*", ".*")
 			}
+		}
+
+		maven("https://maven.aliyun.com/repository/public") {
+//			content {
+//				includeVersionByRegex("com.github.CarGuo", ".*", ".*")
+//			}
 		}
 	}
 }

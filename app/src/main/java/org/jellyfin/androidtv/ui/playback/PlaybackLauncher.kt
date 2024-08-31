@@ -28,6 +28,8 @@ class GarbagePlaybackLauncher(
 	}
 
 	override fun getPlaybackDestination(itemType: BaseItemKind?, position: Int) = when {
+		// 写死使用gsyPlayer
+		true -> Destinations.gsyPlayer(position)
 		useExternalPlayer(itemType) -> Destinations.externalPlayer(position)
 		else -> Destinations.videoPlayer(position)
 	}
