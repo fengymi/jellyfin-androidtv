@@ -11,7 +11,6 @@ include(":playback:jellyfin")
 include(":playback:media3:exoplayer")
 include(":playback:media3:session")
 include(":preference")
-
 pluginManagement {
 	repositories {
 		gradlePluginPortal()
@@ -45,9 +44,8 @@ dependencyResolutionManagement {
 //			}
 		}
 		maven("https://jitpack.io") {
-			content {
-				includeVersionByRegex("com.github.fengymi.*", ".*", ".*")
-			}
+			// 移除内容限制，允许所有 jitpack 依赖
 		}
 	}
 }
+

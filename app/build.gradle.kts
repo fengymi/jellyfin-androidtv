@@ -16,10 +16,10 @@ fun releaseTime(): String {
 }
 
 android {
-	val projectVersion = "1120.18.4"
+	val projectVersion = "1.0.8"
 	namespace = "org.jellyfin.androidtv"
 //		val selfAppId = namespace!!;
-	val selfAppId = "com.fengymi.jellyfin.androidtv"
+	val selfAppId = "com.siiloo.jellyfin.androidtv"
 	compileSdk = libs.versions.android.compileSdk.get().toInt()
 
 	defaultConfig {

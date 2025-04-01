@@ -1,5 +1,6 @@
 plugins {
 	alias(libs.plugins.detekt)
+	alias(libs.plugins.android.library) apply false
 	java
 }
 

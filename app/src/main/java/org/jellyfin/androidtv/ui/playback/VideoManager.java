@@ -11,7 +11,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.view.View;
 import android.widget.FrameLayout;
-
+import master.flame.danmaku.danmaku.model.DanmakuTimer;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.OptIn;
@@ -77,6 +77,16 @@ public class VideoManager {
     public boolean isContracted = false;
 
     private final UserPreferences userPreferences = KoinJavaComponent.get(UserPreferences.class);
+
+    private Runnable danmakuTimeUpdateTask = new Runnable() {
+        @Override
+        public void run() {
+            if (mExoPlayer != null && isPlaying()) {
+                DanmakuTimer.videoTime = mExoPlayer.getCurrentPosition();
+            }
+            mHandler.postDelayed(this, 16); // 大约60fps的更新频率
+        }
+    };
 
     public VideoManager(@NonNull Activity activity, @NonNull View view, @NonNull PlaybackOverlayFragmentHelper helper) {
         mActivity = activity;
@@ -650,5 +660,14 @@ public class VideoManager {
             mDynamicsProcessing.setLimiterAllChannelsTo(mLimiter);
             mDynamicsProcessing.setEnabled(true);
         }
+    }
+
+    public void startDanmakuTimeSync() {
+        mHandler.removeCallbacks(danmakuTimeUpdateTask);
+        mHandler.post(danmakuTimeUpdateTask);
+    }
+
+    public void stopDanmakuTimeSync() {
+        mHandler.removeCallbacks(danmakuTimeUpdateTask);
     }
 }
