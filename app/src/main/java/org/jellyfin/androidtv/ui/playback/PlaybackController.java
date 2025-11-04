@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.playback;
 
+import static org.koin.java.KoinJavaComponent.get;
 import static org.koin.java.KoinJavaComponent.inject;
 
 import android.annotation.TargetApi;
@@ -37,6 +38,7 @@ import org.jellyfin.androidtv.util.apiclient.Response;
 import org.jellyfin.androidtv.util.profile.DeviceProfileKt;
 import org.jellyfin.androidtv.util.sdk.compat.JavaCompat;
 import org.jellyfin.sdk.api.client.ApiClient;
+import org.jellyfin.sdk.model.ServerVersion;
 import org.jellyfin.sdk.model.api.BaseItemDto;
 import org.jellyfin.sdk.model.api.BaseItemKind;
 import org.jellyfin.sdk.model.api.DeviceProfile;
@@ -48,8 +50,6 @@ import org.jellyfin.sdk.model.api.PlayMethod;
 import org.jellyfin.sdk.model.api.SubtitleDeliveryMethod;
 import org.jellyfin.sdk.model.serializer.UUIDSerializerKt;
 import org.koin.java.KoinJavaComponent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -65,7 +65,6 @@ public class PlaybackController implements PlaybackControllerNotifiable {
     private final static long PROGRESS_REPORTING_INTERVAL = TimeUtils.secondsToMillis(3);
     // Frequency to report paused state
     private static final long PROGRESS_REPORTING_PAUSE_INTERVAL = TimeUtils.secondsToMillis(15);
-    private static final Logger log = LoggerFactory.getLogger(PlaybackController.class);
 
     private Lazy<PlaybackManager> playbackManager = inject(PlaybackManager.class);
     private Lazy<UserPreferences> userPreferences = inject(UserPreferences.class);
@@ -532,8 +531,8 @@ public class PlaybackController implements PlaybackControllerNotifiable {
         VideoOptions internalOptions = new VideoOptions();
         internalOptions.setItemId(item.getId());
         internalOptions.setMediaSources(item.getMediaSources());
-        if (playbackRetries > 0 || (isLiveTv && !directStreamLiveTv)) internalOptions.setEnableDirectStream(false);
-        if (playbackRetries > 1) internalOptions.setEnableDirectPlay(false);
+        if (playbackRetries > 0 || (isLiveTv && !directStreamLiveTv)) internalOptions.setEnableDirectPlay(false);
+        if (playbackRetries > 1) internalOptions.setEnableDirectStream(false);
         if (mCurrentOptions != null) {
             internalOptions.setSubtitleStreamIndex(mCurrentOptions.getSubtitleStreamIndex());
             internalOptions.setAudioStreamIndex(mCurrentOptions.getAudioStreamIndex());
@@ -555,8 +554,9 @@ public class PlaybackController implements PlaybackControllerNotifiable {
             internalOptions.setMediaSourceId(currentMediaSource.getId());
         }
         DeviceProfile internalProfile = DeviceProfileKt.createDeviceProfile(
+                mFragment.getContext(),
                 userPreferences.getValue(),
-                !internalOptions.getEnableDirectStream()
+                get(ServerVersion.class)
         );
         internalOptions.setProfile(internalProfile);
         return internalOptions;
@@ -568,9 +568,10 @@ public class PlaybackController implements PlaybackControllerNotifiable {
             TvManager.setLastLiveTvChannel(item.getId());
             //internal/exo player
             Timber.i("Using internal player for Live TV");
-            playbackManager.getValue().getVideoStreamInfo(mFragment, internalOptions, position * 10000, new Response<StreamInfo>() {
+            playbackManager.getValue().getVideoStreamInfo(mFragment, internalOptions, position * 10000, new Response<StreamInfo>(mFragment.getLifecycle()) {
                 @Override
                 public void onResponse(StreamInfo response) {
+                    if (!isActive()) return;
                     if (mVideoManager == null)
                         return;
                     mCurrentOptions = internalOptions;
@@ -579,13 +580,15 @@ public class PlaybackController implements PlaybackControllerNotifiable {
 
                 @Override
                 public void onError(Exception exception) {
+                    if (!isActive()) return;
                     handlePlaybackInfoError(exception);
                 }
             });
         } else {
-            playbackManager.getValue().getVideoStreamInfo(mFragment, internalOptions, position * 10000, new Response<StreamInfo>() {
+            playbackManager.getValue().getVideoStreamInfo(mFragment, internalOptions, position * 10000, new Response<StreamInfo>(mFragment.getLifecycle()) {
                 @Override
                 public void onResponse(StreamInfo internalResponse) {
+                    if (!isActive()) return;
                     Timber.i("Internal player would %s", internalResponse.getPlayMethod().equals(PlayMethod.TRANSCODE) ? "transcode" : "direct stream");
                     if (mVideoManager == null)
                         return;
@@ -596,6 +599,7 @@ public class PlaybackController implements PlaybackControllerNotifiable {
 
                 @Override
                 public void onError(Exception exception) {
+                    if (!isActive()) return;
                     Timber.e(exception, "Unable to get stream info for internal player");
                     if (mVideoManager == null)
                         return;
@@ -640,12 +644,8 @@ public class PlaybackController implements PlaybackControllerNotifiable {
 
         AutoSkipModel autoSkipModel = customerUserPreferences.getAutoSkipModel(item);
         setAutoSkip(autoSkipModel);
-        if (position <= 0) {
-            if (autoSkipModel != null && autoSkipModel.getTsTime() <= 0 && autoSkipModel.getTeTime() > 0) {
-                position = autoSkipModel.getTeTime() * 1000L;
-            }
-        } else {
-            autoSkipComponent.setTouSkipped(true);
+        if (position > 0) {
+            autoSkipComponent.seekTo(0, position);
         }
 
         mStartPosition = position;
@@ -924,6 +924,7 @@ public class PlaybackController implements PlaybackControllerNotifiable {
     private void clearPlaybackSessionOptions() {
         mDefaultAudioIndex = -1;
         mSeekPosition = -1;
+        currentSkipPos = 0;
         finishedInitialSeek = false;
         wasSeeking = false;
         burningSubs = false;
@@ -996,20 +997,23 @@ public class PlaybackController implements PlaybackControllerNotifiable {
         }
         wasSeeking = true;
 
-        // Stop playback when the requested seek position is at the end of the video
         long duration = getDuration();
+//        Timber.e(new Exception(), "执行跳过操作: skipToNext=%s, 偏移=%s, currentSkipPos=%s, mSeekPosition=%s, mCurrentPosition=%s, result=%s", skipToNext, pos, currentSkipPos, mSeekPosition, mCurrentPosition, pos >= (duration - 100));
+        // Stop playback when the requested seek position is at the end of the video
         if (skipToNext && pos >= (duration - 100)) {
             // Since we've skipped ahead, set the current position so the PlaybackStopInfo will report the correct end time
             mCurrentPosition = duration;
             // Make sure we also set the seek positions so mCurrentPosition won't get overwritten in refreshCurrentPosition()
-//            currentSkipPos = mCurrentPosition;
-//            mSeekPosition = mCurrentPosition;
+            currentSkipPos = mCurrentPosition;
+            mSeekPosition = mCurrentPosition;
             // Finalize item playback
             itemComplete();
             return;
         }
 
         if (pos >= duration) pos = duration;
+        // 标记自动跳过
+        autoSkipComponent.seekTo(mCurrentPosition, pos);
 
         // set seekPosition so real position isn't used until playback starts again
         mSeekPosition = pos;
@@ -1024,9 +1028,10 @@ public class PlaybackController implements PlaybackControllerNotifiable {
             mVideoManager.stopPlayback();
             mPlaybackState = PlaybackState.BUFFERING;
 
-            playbackManager.getValue().changeVideoStream(mFragment, mCurrentStreamInfo, mCurrentOptions, pos * 10000, new Response<StreamInfo>() {
+            playbackManager.getValue().changeVideoStream(mFragment, mCurrentStreamInfo, mCurrentOptions, pos * 10000, new Response<StreamInfo>(mFragment.getLifecycle()) {
                 @Override
                 public void onResponse(StreamInfo response) {
+                    if (!isActive()) return;
                     mCurrentStreamInfo = response;
                     if (mVideoManager != null) {
                         mVideoManager.setMediaStreamInfo(api.getValue(), response);
@@ -1036,6 +1041,7 @@ public class PlaybackController implements PlaybackControllerNotifiable {
 
                 @Override
                 public void onError(Exception exception) {
+                    if (!isActive()) return;
                     if (mFragment != null)
                         Utils.showToast(mFragment.getContext(), R.string.msg_video_playback_error);
                     Timber.e(exception, "Error trying to seek transcoded stream");
@@ -1067,6 +1073,7 @@ public class PlaybackController implements PlaybackControllerNotifiable {
     private final Runnable skipRunnable = () -> {
         if (!(isPlaying() || isPaused())) return; // in case we completed since this was requested
 
+        Timber.d("skipRunnable 执行跳过操作: currentSkipPos=%s", currentSkipPos);
         seek(currentSkipPos);
         currentSkipPos = 0;
     };
@@ -1192,6 +1199,7 @@ public class PlaybackController implements PlaybackControllerNotifiable {
     }
 
     private void itemComplete() {
+        interactionTracker.onEpisodeWatched();
         stop();
         resetPlayerErrors();
 
@@ -1254,6 +1262,8 @@ public class PlaybackController implements PlaybackControllerNotifiable {
                 Integer currentSubtitleIndex = mCurrentOptions.getSubtitleStreamIndex();
                 if (currentSubtitleIndex == null) currentSubtitleIndex = -1;
                 PlaybackControllerHelperKt.setSubtitleIndex(this, currentSubtitleIndex, true);
+            } else {
+                PlaybackControllerHelperKt.disableDefaultSubtitles(this);
             }
 
             // select an audio track
@@ -1302,7 +1312,6 @@ public class PlaybackController implements PlaybackControllerNotifiable {
 
     @Override
     public void onCompletion() {
-        interactionTracker.onEpisodeWatched();
         Timber.d("On Completion fired");
         itemComplete();
     }
