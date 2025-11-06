@@ -74,17 +74,19 @@ public class DanmuPlaybackController extends PlaybackController {
 
     @Override
     protected void doStartItem(BaseItemDto item, long position, StreamInfo response) {
-        IDanmakuView danmakuView = getDanmakuView();
-        if (danmakuView.isPrepared()) {
-            danmakuView.stop();
-        }
+        mHandler.post(() -> {
+            IDanmakuView danmakuView = getDanmakuView();
+            if (danmakuView.isPrepared()) {
+                danmakuView.stop();
+            }
 
-        if (position > 0) {
-            setDanmakuStartSeekPosition(position);
-        } else {
-            setDanmakuStartSeekPosition(-1);
-        }
-        onPrepareDanmaku(this, item);
+            if (position > 0) {
+                setDanmakuStartSeekPosition(position);
+            } else {
+                setDanmakuStartSeekPosition(-1);
+            }
+            onPrepareDanmaku(DanmuPlaybackController.this, item);
+        });
     }
 
     @Override
