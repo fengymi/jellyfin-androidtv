@@ -36,6 +36,7 @@ import master.flame.danmaku.danmaku.model.android.Danmakus;
 import master.flame.danmaku.danmaku.model.android.SpannedCacheStuffer;
 import master.flame.danmaku.danmaku.parser.BaseDanmakuParser;
 import master.flame.danmaku.danmaku.parser.IDataSource;
+import timber.log.Timber;
 
 public class DanmuPlaybackController extends PlaybackController {
     private DanmuApi danmuApi;
@@ -237,6 +238,7 @@ public class DanmuPlaybackController extends PlaybackController {
             } else {
                 CustomerCommonUtils.show(context, "获取弹幕失败:" + e.getMessage());
             }
+            Timber.e(e, "获取弹幕失败");
         }
 
         if (danmuXmlFileById == null) {
