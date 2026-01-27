@@ -7,7 +7,6 @@ import android.content.Context;
 import android.graphics.Color;
 import android.media.AudioManager;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.KeyEvent;
@@ -764,7 +763,7 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
     @Override
     public void onStop() {
         super.onStop();
-        Timber.d("Stopping!");
+        Timber.i("Stopping!");
 
         if (leanbackOverlayFragment != null)
             leanbackOverlayFragment.setOnKeyInterceptListener(null);
@@ -772,7 +771,7 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
         // end playback from here if this fragment belongs to the current session.
         // if it doesn't, playback has already been stopped elsewhere, and the references to this have been replaced
         if (playbackControllerContainer.getValue().getPlaybackController() != null && playbackControllerContainer.getValue().getPlaybackController().getFragment() == this) {
-            Timber.d("this fragment belongs to the current session, ending it");
+            Timber.i("this fragment belongs to the current session, ending it");
             playbackControllerContainer.getValue().getPlaybackController().endPlayback();
         }
 
@@ -1349,7 +1348,7 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
 
         if (chapters != null && !chapters.isEmpty()) {
             // create chapter row for later use
-            ItemRowAdapter chapterAdapter = new ItemRowAdapter(requireContext(), BaseItemExtensionsKt.buildChapterItems(item, api.getValue()), new CardPresenter(true, 110), new MutableObjectAdapter<Row>());
+            ItemRowAdapter chapterAdapter = new ItemRowAdapter(requireContext(), BaseItemExtensionsKt.buildChapterItems(item), new CardPresenter(true, 110), new MutableObjectAdapter<Row>());
             chapterAdapter.Retrieve();
             if (mChapterRow != null) mPopupRowAdapter.remove(mChapterRow);
             mChapterRow = new ListRow(new HeaderItem(requireContext().getString(R.string.chapters)), chapterAdapter);
@@ -1406,10 +1405,8 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
         WindowCompat.getInsetsController(requireActivity().getWindow(), requireActivity().getWindow().getDecorView()).show(WindowInsetsCompat.Type.systemBars());
 
         // Reset display mode
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            WindowManager.LayoutParams params = getActivity().getWindow().getAttributes();
-            params.preferredDisplayModeId = 0;
-            getActivity().getWindow().setAttributes(params);
-        }
+        WindowManager.LayoutParams params = getActivity().getWindow().getAttributes();
+        params.preferredDisplayModeId = 0;
+        getActivity().getWindow().setAttributes(params);
     }
 }

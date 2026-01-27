@@ -2,7 +2,6 @@ package org.jellyfin.androidtv.data.eventhandling
 
 import android.content.Context
 import android.media.AudioManager
-import android.os.Build
 import android.widget.Toast
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.coroutineScope
@@ -79,7 +78,7 @@ class SocketHandler(
 						add(GeneralCommandType.SEND_STRING)
 
 						// Note: These are used in the PlaySessionSocketService
-						if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !audioManager.isVolumeFixed) {
+						if (!audioManager.isVolumeFixed) {
 							add(GeneralCommandType.VOLUME_UP)
 							add(GeneralCommandType.VOLUME_DOWN)
 							add(GeneralCommandType.SET_VOLUME)
@@ -172,13 +171,14 @@ class SocketHandler(
 	}
 
 	private fun onPlayMessage(message: PlayMessage) {
-		val itemId = message.data?.itemIds?.firstOrNull() ?: return
+		val itemIds = message.data?.itemIds ?: return
 
 		runCatching {
 			playbackHelper.retrieveAndPlay(
-				itemId,
+				itemIds,
 				false,
 				message.data?.startPositionTicks,
+				message.data?.startIndex,
 				context
 			)
 		}.onFailure { Timber.w(it, "Failed to start playback") }

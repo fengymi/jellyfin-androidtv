@@ -6,7 +6,6 @@ import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemPerson
 import org.jellyfin.sdk.model.api.ImageType
 import org.jellyfin.sdk.model.api.UserDto
-import org.jellyfin.sdk.model.serializer.toUUIDOrNull
 import java.util.UUID
 
 /**
@@ -53,6 +52,7 @@ enum class JellyfinImageSource {
 	SERIES,
 	CHANNEL,
 	USER,
+	CHAPTER,
 }
 
 // UserDto
@@ -99,7 +99,7 @@ val BaseItemDto.itemBackdropImages
 
 val BaseItemDto.parentImages
 	get() = mapOf(
-		ImageType.PRIMARY to (parentPrimaryImageItemId?.toUUIDOrNull() to parentPrimaryImageTag),
+		ImageType.PRIMARY to (parentPrimaryImageItemId to parentPrimaryImageTag),
 		ImageType.LOGO to (parentLogoItemId to parentLogoImageTag),
 		ImageType.ART to (parentArtItemId to parentArtImageTag),
 		ImageType.THUMB to (parentThumbItemId to parentThumbImageTag),
@@ -194,6 +194,19 @@ val BaseItemDto.seriesThumbImage
 		}
 	}
 
+val BaseItemDto.chapterImages
+	get() = chapters?.mapIndexed { index, chapter ->
+		JellyfinImage(
+			item = id,
+			source = JellyfinImageSource.CHAPTER,
+			type = ImageType.CHAPTER,
+			tag = chapter.imageTag.orEmpty(),
+			blurHash = null,
+			aspectRatio = null,
+			index = index,
+		)
+	}.orEmpty()
+
 val BaseItemDto.images
 	get() = listOfNotNull(
 		itemImages.values,
@@ -204,6 +217,7 @@ val BaseItemDto.images
 		listOfNotNull(channelPrimaryImage),
 		listOfNotNull(seriesPrimaryImage),
 		listOfNotNull(seriesThumbImage),
+		chapterImages,
 	).flatten()
 
 // BaseItemPerson

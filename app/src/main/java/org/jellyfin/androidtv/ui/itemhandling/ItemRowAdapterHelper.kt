@@ -47,7 +47,7 @@ fun <T : Any> ItemRowAdapter.setItems(
 	items: Collection<T>,
 	transform: (T, Int) -> BaseRowItem?,
 ) {
-	Timber.d("Creating items from $itemsLoaded existing and ${items.size} new, adapter size is ${size()}")
+	Timber.i("Creating items from $itemsLoaded existing and ${items.size} new, adapter size is ${size()}")
 
 	val allItems = buildList {
 		// Add current items before loaded items
@@ -235,11 +235,10 @@ fun ItemRowAdapter.retrieveUserViews(api: ApiClient, userViewsRepository: UserVi
 
 			val filteredItems = response.items
 				.filter { userViewsRepository.isSupported(it.collectionType) }
-				.map { it.copy(displayPreferencesId = it.id.toString()) }
 
 			setItems(
 				items = filteredItems,
-				transform = { item, _ -> BaseItemDtoBaseRowItem(item) }
+				transform = { item, _ -> BaseItemDtoBaseRowItem(item, staticHeight = true) }
 			)
 
 			if (filteredItems.isEmpty()) removeRow()

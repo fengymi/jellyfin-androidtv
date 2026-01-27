@@ -28,6 +28,7 @@ import org.jellyfin.androidtv.ui.background.AppBackground
 import org.jellyfin.androidtv.ui.navigation.NavigationAction
 import org.jellyfin.androidtv.ui.navigation.NavigationRepository
 import org.jellyfin.androidtv.ui.screensaver.InAppScreensaver
+import org.jellyfin.androidtv.ui.settings.compat.MainActivitySettings
 import org.jellyfin.androidtv.ui.startup.StartupActivity
 import org.jellyfin.androidtv.util.applyTheme
 import org.jellyfin.androidtv.util.isMediaSessionKeyEvent
@@ -76,6 +77,7 @@ class MainActivity : FragmentActivity() {
 
 		binding = ActivityMainBinding.inflate(layoutInflater)
 		binding.background.setContent { AppBackground() }
+		binding.settings.setContent { MainActivitySettings() }
 		binding.screensaver.setContent { InAppScreensaver() }
 		setContentView(binding.root)
 	}
@@ -113,7 +115,7 @@ class MainActivity : FragmentActivity() {
 		workManager.enqueue(OneTimeWorkRequestBuilder<LeanbackChannelWorker>().build())
 
 		lifecycleScope.launch(Dispatchers.IO) {
-			Timber.d("MainActivity stopped")
+			Timber.i("MainActivity stopped")
 			sessionRepository.restoreSession(destroyOnly = true)
 		}
 	}
