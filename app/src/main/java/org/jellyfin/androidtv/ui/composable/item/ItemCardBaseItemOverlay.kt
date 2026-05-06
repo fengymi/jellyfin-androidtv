@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
@@ -35,7 +36,10 @@ import org.koin.compose.koinInject
 
 @Composable
 @Stable
-fun ItemCardBaseItemOverlay(item: BaseItemDto) = Box(
+fun ItemCardBaseItemOverlay(
+	item: BaseItemDto,
+	footer: (@Composable () -> Unit)? = null,
+) = Box(
 	modifier = Modifier
 		.fillMaxSize()
 		.padding(Tokens.Space.spaceXs)
@@ -50,10 +54,16 @@ fun ItemCardBaseItemOverlay(item: BaseItemDto) = Box(
 		modifier = Modifier.align(Alignment.TopEnd)
 	)
 
-	ProgressIndicator(
-		item = item,
-		modifier = Modifier.align(Alignment.BottomCenter)
-	)
+	Column(
+		modifier = Modifier.align(Alignment.BottomCenter),
+		verticalArrangement = Arrangement.spacedBy(Tokens.Space.spaceXs)
+	) {
+		ProgressIndicator(
+			item = item,
+		)
+
+		if (footer != null) footer()
+	}
 }
 
 @Composable
@@ -109,7 +119,8 @@ private fun WatchIndicator(
 
 	if (isPlayed) {
 		Badge(
-			modifier = modifier,
+			modifier = modifier
+				.size(24.dp),
 		) {
 			Icon(
 				imageVector = ImageVector.vectorResource(R.drawable.ic_watch),
@@ -121,7 +132,8 @@ private fun WatchIndicator(
 		if (watchedIndicatorBehavior == WatchedIndicatorBehavior.HIDE_UNWATCHED) return
 
 		Badge(
-			modifier = modifier,
+			modifier = modifier
+				.sizeIn(minWidth = 24.dp, minHeight = 24.dp),
 		) {
 			Text(
 				text = unplayedItems.toString(),
@@ -140,7 +152,7 @@ private fun ProgressIndicator(
 	val currentQueueEntry by rememberQueueEntry(playbackManager)
 
 	val playedPercentage = if (playState == PlayState.PLAYING && currentQueueEntry?.baseItem?.id == item.id) {
-		rememberPlayerProgress(playbackManager)
+		rememberPlayerProgress(playbackManager).value
 	} else {
 		item.userData?.playedPercentage?.toFloat()?.div(100f)?.coerceIn(0f, 1f)?.takeIf { it > 0f && it < 1f }
 	}

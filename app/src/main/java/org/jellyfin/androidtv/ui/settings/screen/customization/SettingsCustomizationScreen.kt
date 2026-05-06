@@ -62,13 +62,12 @@ fun SettingsCustomizationScreen() {
 		}
 
 		item {
-			var backdropEnabled by rememberPreference(userPreferences, UserPreferences.backdropEnabled)
+			var backdropBehavior by rememberPreference(userPreferences, UserPreferences.backdropBehavior)
 
 			ListButton(
 				headingContent = { Text(stringResource(R.string.lbl_show_backdrop)) },
-				trailingContent = { Checkbox(checked = backdropEnabled) },
-				captionContent = { Text(stringResource(R.string.pref_show_backdrop_description)) },
-				onClick = { backdropEnabled = !backdropEnabled }
+				captionContent = { Text(stringResource(backdropBehavior.nameRes)) },
+				onClick = { router.push(Routes.CUSTOMIZATION_BACKDROP) }
 			)
 		}
 
@@ -80,16 +79,6 @@ fun SettingsCustomizationScreen() {
 				trailingContent = { Checkbox(checked = seriesThumbnailsEnabled) },
 				captionContent = { Text(stringResource(R.string.lbl_use_series_thumbnails_description)) },
 				onClick = { seriesThumbnailsEnabled = !seriesThumbnailsEnabled }
-			)
-		}
-
-		item {
-			var defaultRatingType by rememberPreference(userPreferences, UserPreferences.defaultRatingType)
-
-			ListButton(
-				headingContent = { Text(stringResource(R.string.pref_default_rating)) },
-				captionContent = { Text(stringResource(defaultRatingType.nameRes)) },
-				onClick = { router.push(Routes.CUSTOMIZATION_RATING_TYPE) }
 			)
 		}
 

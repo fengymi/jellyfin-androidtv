@@ -3,11 +3,14 @@ package org.jellyfin.androidtv.preference
 import android.content.Context
 import androidx.preference.PreferenceManager
 import org.jellyfin.androidtv.preference.UserPreferences.Companion.screensaverInAppEnabled
+import org.jellyfin.androidtv.preference.constant.AVCLevel
 import org.jellyfin.androidtv.preference.constant.AppTheme
 import org.jellyfin.androidtv.preference.constant.AudioBehavior
+import org.jellyfin.androidtv.preference.constant.BackdropBehavior
 import org.jellyfin.androidtv.preference.constant.ClockBehavior
+import org.jellyfin.androidtv.preference.constant.HEVCLevel
 import org.jellyfin.androidtv.preference.constant.NextUpBehavior
-import org.jellyfin.androidtv.preference.constant.RatingType
+import org.jellyfin.androidtv.preference.constant.BufferLength
 import org.jellyfin.androidtv.preference.constant.RefreshRateSwitchingBehavior
 import org.jellyfin.androidtv.preference.constant.StillWatchingBehavior
 import org.jellyfin.androidtv.preference.constant.WatchedIndicatorBehavior
@@ -41,9 +44,9 @@ open class UserPreferences(context: Context) : SharedPreferenceStore(
 		var appTheme = enumPreference("app_theme", AppTheme.DARK)
 
 		/**
-		 * Enable background images while browsing
+		 * Behavior of app background while browsing
 		 */
-		var backdropEnabled = booleanPreference("pref_show_backdrop", true)
+		var backdropBehavior = enumPreference("backdrop_behavior", BackdropBehavior.BACKDROP_WITH_BLUR)
 
 		/* Playback - General*/
 		/**
@@ -103,6 +106,21 @@ open class UserPreferences(context: Context) : SharedPreferenceStore(
 		 */
 		var preferExoPlayerFfmpeg = booleanPreference("exoplayer_prefer_ffmpeg", defaultValue = false)
 
+		/**
+		 * User defined AVC level override. AUTO uses device-reported capabilities.
+		 */
+		var userAVCLevel = enumPreference("user_avc_level", AVCLevel.AUTO)
+
+		/**
+		 * User defined HEVC level override. AUTO uses device-reported capabilities.
+		 */
+		var userHEVCLevel = enumPreference("user_hevc_level", HEVCLevel.AUTO)
+
+		/**
+		 * Playback buffer size preset.
+		 */
+		var bufferLength = enumPreference("buffer_length", BufferLength.AUTO)
+
 		/* Playback - Audio related */
 		/**
 		 * Preferred behavior for audio streaming.
@@ -145,11 +163,6 @@ open class UserPreferences(context: Context) : SharedPreferenceStore(
 		 * When to show the clock.
 		 */
 		var clockBehavior = enumPreference("pref_clock_behavior", ClockBehavior.ALWAYS)
-
-		/**
-		 * Set which ratings provider should show on MyImageCardViews
-		 */
-		var defaultRatingType = enumPreference("pref_rating_type", RatingType.RATING_TOMATOES)
 
 		/**
 		 * Set when watched indicators should show on MyImageCardViews
@@ -243,7 +256,17 @@ open class UserPreferences(context: Context) : SharedPreferenceStore(
 		var trickPlayEnabled = booleanPreference("trick_play_enabled", false)
 
 		/**
-  		 * Enable PGS subtitle direct-play.
+		 * Enable libass.
+		 */
+		var assDirectPlay = booleanPreference("libass_enabled", false)
+
+		/**
+		 * Always burn in subtitles when transcoding.
+		 */
+		var subtitlesBurnDuringTranscode = booleanPreference("subtitles_burn_during_transcode", false)
+
+		/**
+		 * Enable PGS subtitle direct-play.
 		 */
 		var pgsDirectPlay = booleanPreference("pgs_enabled", true)
 	}
@@ -274,6 +297,13 @@ open class UserPreferences(context: Context) : SharedPreferenceStore(
 			migration(toVersion = 9) {
 				// Reset subtitle text size as we changed from fractional sizing to absolute sizing
 				remove("subtitles_text_size")
+
+				// Set the BackdropBehavior if it was enabled in a previous version
+				val backdropEnabled = it.getBoolean("pref_show_backdrop", true)
+				putString(
+					"backdrop_behavior",
+					if (backdropEnabled) BackdropBehavior.BACKDROP_WITH_BLUR.name else BackdropBehavior.DISABLED.name
+				)
 			}
 		}
 	}

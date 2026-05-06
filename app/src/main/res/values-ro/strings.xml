@@ -273,9 +273,6 @@
     <string name="pref_clock_display_browsing">În timpul navigării</string>
     <string name="lbl_always">Mereu</string>
     <string name="pref_clock_display">Afișează ceasul</string>
-    <string name="pref_default_rating">Tipul de evaluare implicit</string>
-    <string name="lbl_tomatoes">Rotten Tomatoes</string>
-    <string name="lbl_stars">Stele</string>
     <string name="user_picker_last_user_summary">Folosiți ultimul cont activ</string>
     <string name="user_picker_last_user_title">Cel mai recent utilizat</string>
     <string name="user_picker_disable_summary">Afișează întotdeauna ecranul de autentificare</string>
@@ -402,7 +399,6 @@
     <string name="lbl_starting_early_ending_after">Începe %1$s mai devreme și se termină %2$s după program</string>
     <string name="server_connection_failed_candidates">Nu se poate conecta la server, următoarele adrese au fost încercate: %1$s</string>
     <string name="pref_next_up_timeout_disabled">∞</string>
-    <string name="pref_show_backdrop_description">Schimbă imaginea de fundal în elementele selectate</string>
     <string name="lbl_playback_speed">Viteză de redare</string>
     <string name="pref_audio_night_mode">Mod audio de noapte (experimental)</string>
     <string name="lbl_additional_parts">Părți suplimentare</string>
@@ -630,4 +626,6 @@
     <string name="video_player_internal">Playyer de Video inclus</string>
     <string name="video_player_external">Aplicatie Externa</string>
     <string name="playback_video_player_external_empty">Nu ai o aplicatie de redare de video care poate sa deschida videouri din Jellyfin.</string>
+    <string name="backdrop_behavior_with_blur">Fundal cu blur</string>
+    <string name="backdrop_behavior_without_blur">Fundal fără blur</string>
 </resources>

@@ -266,9 +266,6 @@
     <string name="pref_clock_display_playback">Durante la reproducción</string>
     <string name="lbl_always">Siempre</string>
     <string name="pref_clock_display">Mostrar reloj</string>
-    <string name="pref_default_rating">Tipo de valoración por defecto</string>
-    <string name="lbl_tomatoes">tomates</string>
-    <string name="lbl_stars">estrellas</string>
     <string name="login_username_field_empty">El usuario no puede estar vacío</string>
     <string name="login_server_unavailable">Imposible conectar con el servidor</string>
     <string name="login_invalid_credentials">Usuario y/o contraseña inválidos</string>
@@ -386,7 +383,6 @@
     <string name="server_connection_failed_candidates">Imposible conectar con el servidor. Dirección usada: %1$s</string>
     <string name="pref_next_up_timeout_disabled">∞</string>
     <string name="lbl_playback_speed">Velocidad de reproducción</string>
-    <string name="pref_show_backdrop_description">Cambia el fondo de pantalla según el elemento seleccionado</string>
     <string name="lbl_shuffle_queue">Cambiar a aleatorio</string>
     <string name="home_section_resume_book">Continuar leyendo</string>
     <string name="pref_direct_stream_live_on">Transcodificación deshabilitada</string>
@@ -631,4 +627,24 @@
     <string name="pref_playback_prerolls">Intros</string>
     <string name="playback_video_player_external_empty">No tiene instalada ninguna aplicación de reproducción de vídeo en su dispositivo que pueda abrir vídeos de Jellyfin.</string>
     <string name="filters">Filtros</string>
+    <string name="backdrop_behavior_with_blur">Fondo con desenfoque</string>
+    <string name="backdrop_behavior_without_blur">Fondo sin desenfoque</string>
+    <string name="codec_level_warning">Cambiar el nivel de auto puede causar problemas de reproducción si tu dispositivo no soporta el nivel seleccionado.</string>
+    <string name="codec_level_manual">Sobreescritura manual</string>
+    <string name="user_avc_level">Nivel H.264 (AVC)</string>
+    <string name="user_hevc_level">Nivel H.265 (HEVC)</string>
+    <string name="preference_codecs">Códecs multimedia</string>
+    <string name="preference_codecs_summary">Reemplazar las capacidades de códecs indicadas por el dispositivo</string>
+    <string name="codec_level_6_2">Nivel 6.2</string>
+    <string name="codec_level_6_1">Nivel 6.1</string>
+    <string name="codec_level_6_0">Nivel 6.0</string>
+    <string name="codec_level_5_2">Nivel 5.2</string>
+    <string name="codec_level_5_1">Nivel 5.1</string>
+    <string name="codec_level_5_0">Nivel 5.0</string>
+    <string name="codec_level_4_2">Nivel 4.2</string>
+    <string name="codec_level_4_1">Nivel 4.1</string>
+    <string name="codec_level_4_0">Nivel 4.0</string>
+    <string name="auto">Automático</string>
+    <string name="pref_burn_subtitles_when_transcoding_description">Incrustar siempre los subtítulos en el vídeo durante la transcodificación. Esto puede arreglar los problemas de sincronización de subtítulos pero desactiva su personalización.</string>
+    <string name="pref_burn_subtitles_when_transcoding">Incrustar subtítulos durante la transcodificación</string>
 </resources>

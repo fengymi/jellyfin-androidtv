@@ -165,7 +165,6 @@
     <string name="lbl_sports">Спорт</string>
     <string name="lbl_bitstream_ac3">Звук Bitstream Dolby Digital</string>
     <string name="lbl_refresh_switching">Перемикання частоти оновлення</string>
-    <string name="pref_show_backdrop_description">Змінює зображення тла щоразу, коли обирається інший елемент медіатеки</string>
     <string name="lbl_show_backdrop">Відображати тло</string>
     <string name="lbl_open">Відкрити</string>
     <string name="lbl_play_next_up">Продовжити перегляд</string>
@@ -411,9 +410,6 @@
     <string name="server_connection_failed_candidates">Не вийшло підключитись до сервера, спробували такі адреси: %1$s</string>
     <string name="server_connection_failed">Не вийшло підключитись до сервера</string>
     <string name="server_connecting">Підключення до %1$s</string>
-    <string name="pref_default_rating">Тип рейтингу за замовчуванням</string>
-    <string name="lbl_tomatoes">Помідори</string>
-    <string name="lbl_stars">Зірки</string>
     <string name="watch_count_overflow">99+</string>
     <string name="lbl_playback_control_ends">Завершиться о %1$s</string>
     <string name="lbl_sign_in">Будь ласка, увійдіть</string>
@@ -641,4 +637,10 @@
     <string name="video_player_external">Зовнішній додаток</string>
     <string name="playback_video_player_external_empty">На вашому пристрої не встановлено програми відеопрогравача, які можуть відкривати відео Jellyfin.</string>
     <string name="filters">Фільтри</string>
+    <string name="backdrop_behavior_with_blur">Фон із розмиттям</string>
+    <string name="backdrop_behavior_without_blur">Фон без розмиття</string>
+    <string name="user_avc_level">H.264 (AVC) рівень</string>
+    <string name="user_hevc_level">H.265 (HEVC) рівень</string>
+    <string name="codec_level_warning">Зміна з автоматичного може спричинити проблеми з відтворенням, якщо ваш пристрій насправді не підтримує вибраний рівень.</string>
+    <string name="preference_codecs">Медіа кодеки</string>
 </resources>

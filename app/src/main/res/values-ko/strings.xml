@@ -264,7 +264,6 @@
     <string name="lbl_playback_control_ends">%1$s에 끝</string>
     <string name="lbl_remove_users">관련된 모든 계정도 삭제됩니다</string>
     <string name="lbl_always">항상</string>
-    <string name="lbl_tomatoes">토마토 지수</string>
     <string name="lbl_special">특별 영상</string>
     <string name="action_connect">연결</string>
     <string name="item_deleted">%1$s 삭제됨</string>
@@ -302,7 +301,6 @@
     <string name="home_sections">홈 메뉴 항목</string>
     <string name="pref_theme_muted_purple">어두운 보라색</string>
     <string name="pref_crash_reports_enabled">마지막으로 접속했던 서버로 충돌 보고서를 보냅니다</string>
-    <string name="pref_show_backdrop_description">선택된 항목으로 배경 이미지 변경</string>
     <string name="lbl_quality_profile">품질 프로파일</string>
     <string name="lbl_user_last_used">%2$s에서 %1$s에 마지막으로 사용</string>
     <string name="crash_report_toast">이런! 문제가 발생했습니다. 당신의 Jellyfin 서버에 충돌 보고서를 전송했습니다.</string>
@@ -356,7 +354,6 @@
     <string name="pref_next_up_behavior_title">다음 비디오 정보 표시</string>
     <string name="color_pink">분홍색</string>
     <string name="pref_accounts">계정</string>
-    <string name="pref_default_rating">기본 평점 종류</string>
     <string name="lbl_remove_user_content">계정 삭제</string>
     <string name="lbl_remove">삭제</string>
     <string name="enable_smart_view_description">스마트 스크린은 그리드 대신 관련된 항목을 보여줍니다</string>
@@ -498,7 +495,6 @@
     <string name="photos">사진</string>
     <string name="lbl_use_series_thumbnails">시리즈 전체 썸네일 선호</string>
     <string name="image_size_xlarge">더 큼</string>
-    <string name="lbl_stars">별점</string>
     <string name="lbl_stretch">늘이기</string>
     <string name="searchable_hint">Jellyfin 검색</string>
     <string name="lbl_fit">기본</string>

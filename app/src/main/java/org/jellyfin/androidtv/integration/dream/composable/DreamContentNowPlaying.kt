@@ -34,7 +34,7 @@ import org.jellyfin.androidtv.ui.composable.LyricsDtoBox
 import org.jellyfin.androidtv.ui.composable.blurHashPainter
 import org.jellyfin.androidtv.ui.composable.modifier.fadingEdges
 import org.jellyfin.androidtv.ui.composable.modifier.overscan
-import org.jellyfin.androidtv.ui.composable.rememberPlayerProgress
+import org.jellyfin.androidtv.ui.composable.rememberPlayerPositionInfo
 import org.jellyfin.androidtv.ui.player.base.PlayerSeekbar
 import org.jellyfin.androidtv.util.apiclient.albumPrimaryImage
 import org.jellyfin.androidtv.util.apiclient.getUrl
@@ -42,8 +42,8 @@ import org.jellyfin.androidtv.util.apiclient.itemImages
 import org.jellyfin.androidtv.util.apiclient.parentImages
 import org.jellyfin.playback.core.PlaybackManager
 import org.jellyfin.playback.core.model.PlayState
-import org.jellyfin.playback.jellyfin.lyrics
-import org.jellyfin.playback.jellyfin.lyricsFlow
+import org.jellyfin.playback.jellyfin.lyrics.lyrics
+import org.jellyfin.playback.jellyfin.lyrics.lyricsFlow
 import org.jellyfin.sdk.api.client.ApiClient
 import org.jellyfin.sdk.model.api.ImageType
 import org.koin.compose.koinInject
@@ -78,15 +78,12 @@ fun DreamContentNowPlaying(
 	// Lyrics overlay (on top of background)
 	if (lyrics != null) {
 		val playState by remember { playbackManager.state.playState }.collectAsState()
-
-		// Using the progress animation causes the layout to recompose, which we need for synced lyrics to work
-		// we don't actually use the animation value here
-		rememberPlayerProgress(playbackManager)
+		val positionInfo by rememberPlayerPositionInfo(playbackManager)
 
 		LyricsDtoBox(
 			lyricDto = lyrics,
-			currentTimestamp = playbackManager.state.positionInfo.active,
-			duration = playbackManager.state.positionInfo.duration,
+			currentTimestamp = positionInfo.active,
+			duration = positionInfo.duration,
 			paused = playState != PlayState.PLAYING,
 			fontSize = 22.sp,
 			color = Color.White,

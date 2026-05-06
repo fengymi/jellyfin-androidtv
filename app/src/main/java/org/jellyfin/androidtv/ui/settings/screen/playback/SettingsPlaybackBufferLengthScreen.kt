@@ -1,4 +1,4 @@
-package org.jellyfin.androidtv.ui.settings.screen.customization
+package org.jellyfin.androidtv.ui.settings.screen.playback
 
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
@@ -7,7 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.preference.UserPreferences
-import org.jellyfin.androidtv.preference.constant.RatingType
+import org.jellyfin.androidtv.preference.constant.BufferLength
 import org.jellyfin.androidtv.ui.base.Text
 import org.jellyfin.androidtv.ui.base.form.RadioButton
 import org.jellyfin.androidtv.ui.base.list.ListButton
@@ -18,27 +18,27 @@ import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
 import org.koin.compose.koinInject
 
 @Composable
-fun SettingsCustomizationRatingTypeScreen() {
+fun SettingsPlaybackBufferLengthScreen() {
 	val router = LocalRouter.current
 	val userPreferences = koinInject<UserPreferences>()
-	var defaultRatingType by rememberPreference(userPreferences, UserPreferences.defaultRatingType)
+	var bufferLength by rememberPreference(userPreferences, UserPreferences.bufferLength)
 
 	SettingsColumn {
 		item {
 			ListSection(
-				overlineContent = { Text(stringResource(R.string.pref_customization).uppercase()) },
-				headingContent = { Text(stringResource(R.string.pref_default_rating)) },
+				overlineContent = { Text(stringResource(R.string.pref_playback_advanced).uppercase()) },
+				headingContent = { Text(stringResource(R.string.playback_buffer_length)) },
 			)
 		}
 
-		items(RatingType.entries) { entry ->
+		items(BufferLength.entries) { entry ->
 			ListButton(
 				headingContent = { Text(stringResource(entry.nameRes)) },
-				trailingContent = { RadioButton(checked = defaultRatingType == entry) },
+				trailingContent = { RadioButton(checked = bufferLength == entry) },
 				onClick = {
-					defaultRatingType = entry
+					bufferLength = entry
 					router.back()
-				}
+				},
 			)
 		}
 	}
